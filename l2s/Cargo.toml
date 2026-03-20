@@ -1,0 +1,11 @@
+[package]
+name = "l2s"
+edition = "2024"
+version.workspace = true
+depscription.workspace = true
+
+[dependencies]
+console = "0.16.3"
+playground = { version = "0.1.0", path = "../playground" }
+termios = "0.3.3"
+trie = { version = "0.1.0", path = "../trie" }

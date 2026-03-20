@@ -1,0 +1,8 @@
+[package]
+name = "trie"
+edition = "2024"
+version.workspace = true
+depscription.workspace = true
+
+[dependencies]
+playground = { version = "0.1.0", path = "../playground" }

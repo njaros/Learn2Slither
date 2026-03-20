@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = [ "playground"]
+members = [ "l2s", "playground", "trie"]
 
 [workspace.package]
 version = "0.1.0"
