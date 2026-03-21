@@ -27,20 +27,21 @@ fn init_inputs() -> Trie {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let mut playground = PlayGround::new(3, 2);
+    let mut playground = PlayGround::new(10, 10);
     let mut buffer = [0u8; 1];
     let stdout = stdout();
     let mut reader = stdin();
     let (mut new_termios, old_termios) = set_terminal()?;
     let mut trie = init_inputs();
+    // println!("{playground}");
+    playground.print_snake_view();
     while buffer[0] != 113 && playground.is_alive() {
-        println!("{playground}");
-        stdout.lock().flush().unwrap();
-        reader.read(&mut buffer).unwrap();
+        reader.read(&mut buffer)?;
         match trie.seek(buffer[0]) {
             None => {},
             Some(dir) => {
                 playground.next(dir);
+                playground.print_snake_view();
             }
         }
     }

@@ -8,6 +8,7 @@ pub struct TrieNode {
     dir: Dir
 }
 
+/// Structure to parse user inputs.
 pub struct Trie {
     root: TrieNode,
     cursor: TrieNode

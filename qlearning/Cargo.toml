@@ -1,0 +1,7 @@
+[package]
+name = "qlearning"
+edition = "2024"
+version.workspace = true
+depscription.workspace = true
+
+[dependencies]
