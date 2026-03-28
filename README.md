@@ -81,12 +81,22 @@ total cardinal = 3^4 = 81
 ### 5- another impl: lowcost + Dead Near detection ###
 
 let N = what is shorter between {S or #, G, R} = 3  
-let D = is S or # just beside {0, 1} = 2  
-total cardinal = (card(N) * card(G)) ^ card(sides) = 576
+let D = is S or # just beside {0, 1} = 2
+Here cardinal is not obviousm because interpret what is near when your
+are supposed to die is absurd,  
+then, if dead => 0,  
+else, {1, 2, or 3}  
+total cardinal = (card(N U G) / card (N inter G)) ^ card(sides) = 256
+
+### 6- better idea, cost 4096, knowlegde what is nearest and is it just beside ###
+
+let N = what is shorter and is it just beside ? {S0, S1, #0, #1, G0, G1, R0, R1} = 8
+total cardinal = 8 ^ card(sizes) = 4096
+4096
 
 ### balance sheet ###
 
-impl 5 seems to be a good first impl to try.
+impl 6 seems to be a good first impl to try.
 
 
 ## Rewards ##

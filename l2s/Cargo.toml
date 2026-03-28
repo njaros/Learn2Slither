@@ -5,7 +5,9 @@ version.workspace = true
 depscription.workspace = true
 
 [dependencies]
+clap = { version = "4.6.0", features = ["cargo"] }
 console = "0.16.3"
+convenient_lib = { version = "0.1.0", path = "../convenient_lib" }
 playground = { version = "0.1.0", path = "../playground" }
-termios = "0.3.3"
-trie = { version = "0.1.0", path = "../trie" }
+qlearning = { version = "0.1.0", path = "../qlearning" }
+rand = "0.10.0"

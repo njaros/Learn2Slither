@@ -8,22 +8,23 @@
 ///     - Count steps
 
 use rand::prelude::*;
-use rand::{make_rng, rngs::StdRng};
+use rand::rngs::StdRng;
 use std::collections::{VecDeque, HashSet};
 use itertools::Itertools;
 use std::fmt;
 
-#[derive(Clone)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum Tile {
     Empty,
     Green,
     Red,
     Head,
     Body,
-    Wall
+    Wall,
+    Boom
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub enum Dir {
     Up,
     Down,
@@ -31,24 +32,31 @@ pub enum Dir {
     Right
 }
 
+pub fn tile_to_char(tile: Tile) -> char {
+    match tile {
+        Tile::Empty => '.',
+        Tile::Green => 'G',
+        Tile::Red => 'R',
+        Tile::Body => 'S',
+        Tile::Head => 'H',
+        Tile::Wall => '#',
+        Tile::Boom => 'X'
+    }
+}
+
 impl fmt::Display for Tile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", 
-            match self {
-                Tile::Empty => '.',
-                Tile::Green => 'G',
-                Tile::Red => 'R',
-                Tile::Body => 'S',
-                Tile::Head => 'H',
-                Tile::Wall => '#',
-            }
+            tile_to_char(*self)
         )
     }
 }
 
+#[derive(Clone, Copy, PartialEq)]
 pub enum State {
     Alive,
-    Dead
+    Dead,
+    BoardFull
 }
 
 #[derive(Clone, Copy, PartialEq, Debug, Eq, Hash)]
@@ -81,8 +89,9 @@ pub struct PlayGround {
     // Empties is used as a pool of coordinates for all random picks.
     empties: HashSet<Coord>,
     snake: VecDeque<Coord>,
-    counter: u64,
-    state: State,
+    head_pos: Coord,
+    pub state: State,
+    pub score: u32,
     seed: StdRng
 }
 
@@ -129,6 +138,7 @@ impl PlayGround {
                 }
             }
         }
+        self.head_pos = *self.snake.front().unwrap();
         self.snake.clone() // no choice to clone here, otherwise rust complains for unanderstandable ownership reason.
             .iter()
             .enumerate()
@@ -143,12 +153,12 @@ impl PlayGround {
 
     fn _init_apples(&mut self) {
         for _ in 0..2 {
-            self._place_apple(Tile::Green);
+            self._place_rand(Tile::Green);
         }
-        self._place_apple(Tile::Red);
+        self._place_rand(Tile::Red);
     }
 
-    fn _place_apple(&mut self, tile: Tile) -> bool {
+    fn _place_rand(&mut self, tile: Tile) -> bool {
         // For Rust non sense reason, I need to clone the empties structure...
         let rust_bug = self.empties.clone();
         let try_choose = rust_bug.iter().choose(&mut self.seed);
@@ -163,27 +173,6 @@ impl PlayGround {
         }
     }
 
-    fn _is_dead(&self, c: Coord) -> bool {
-        self.coord_to_char(c) == '#'
-        || (self.coord_to_char(c) == 'S' && c != *self.snake.back().unwrap())
-        || (self.coord_to_char(c) == 'R' && self.snake.len() == 1)
-    }
-    
-    fn tile_to_char(tile: &Tile) -> char {
-        match tile {
-            Tile::Wall => '#',
-            Tile::Empty => '.',
-            Tile::Green => 'G',
-            Tile::Red => 'R',
-            Tile::Head => 'H',
-            Tile::Body => 'S'
-        }
-    }
-
-    fn coord_to_char(&self, c: Coord) -> char {
-        PlayGround::tile_to_char(&self.grid[c.y][c.x])
-    }
-
     pub fn is_alive(&self) -> bool {
         match self.state {
             State::Alive => true,
@@ -191,32 +180,34 @@ impl PlayGround {
         }
     }
 
+    pub fn get_score(&self) -> u32 {
+        self.score
+    }
+
     /// Haut, bas, gauche, droite
     pub fn snake_view(&self) -> Vec<Vec<Tile>> {
         let mut view = Vec::<Vec<Tile>>::new();
-
-        let head = self.snake.front().unwrap();
-        let up_view = (0..head.y).rev()
-            .fold(Vec::<Tile>::new(), |mut acc, y| {
-                acc.push(self.grid[y][head.x].clone());
-                acc
-            });
-        let down_view = (head.y + 1..self.height + 2)
-            .fold(Vec::<Tile>::new(), |mut acc, y| {
-                acc.push(self.grid[y][head.x].clone());
-                acc
-            });
-        let left_view = (0..head.x).rev()
-            .fold(Vec::<Tile>::new(), |mut acc, x| {
-                acc.push(self.grid[head.y][x].clone());
-                acc
-            });
-        let right_view = (head.x + 1..self.width + 2)
-            .fold(Vec::<Tile>::new(), |mut acc, x| {
-                acc.push(self.grid[head.y][x].clone());
-                acc
-            });
-
+        let up_view = (0..self.head_pos.y).rev()
+        .fold(Vec::<Tile>::new(), |mut acc, y| {
+            acc.push(self.grid[y][self.head_pos.x]);
+            acc
+        });
+        let down_view = (self.head_pos.y + 1..self.height + 2)
+        .fold(Vec::<Tile>::new(), |mut acc, y| {
+            acc.push(self.grid[y][self.head_pos.x]);
+            acc
+        });
+        let left_view = (0..self.head_pos.x).rev()
+        .fold(Vec::<Tile>::new(), |mut acc, x| {
+            acc.push(self.grid[self.head_pos.y][x]);
+            acc
+        });
+        let right_view = (self.head_pos.x + 1..self.width + 2)
+        .fold(Vec::<Tile>::new(), |mut acc, x| {
+            acc.push(self.grid[self.head_pos.y][x]);
+            acc
+        });
+        
         view.push(up_view);
         view.push(down_view);
         view.push(left_view);
@@ -247,7 +238,15 @@ impl PlayGround {
             .for_each(|tile| {
                 print!("{tile}")
             });
-        print!("{}", Tile::Head);
+        print!("{}", match self.state {
+            State::Dead => {
+                match self.snake.len() {
+                    0 => Tile::Empty,
+                    _ => Tile::Boom
+                }
+            },
+            _ => Tile::Head
+        });
         view[3]
             .iter()
             .for_each(|tile| {
@@ -266,8 +265,12 @@ impl PlayGround {
             });
     }
 
-    pub fn next(&mut self, dir: Dir) -> State {
-        let mut coord = self.snake[0].clone();
+    pub fn next(&mut self, dir: Dir) -> Vec<Vec<Tile>> {
+        if self.state != State::Alive {
+            return self.snake_view();
+        }
+
+        let mut coord = *self.snake.front().unwrap();
         match dir {
             Dir::Down => { coord.y += 1; }
             Dir::Up => { coord.y -= 1; }
@@ -275,60 +278,76 @@ impl PlayGround {
             Dir::Right => { coord.x += 1; }
         }
 
-        if self._is_dead(coord) {
-            self.state = State::Dead;
-            return State::Dead
-        }
-
-        let tile = self.grid[coord.y][coord.x].clone();
         self._change_tile(*self.snake.front().unwrap(), Tile::Body);
         self.snake.push_front(coord);
-        self._change_tile(coord, Tile::Head);
-        match tile {
+        self.head_pos = coord;
+        match self.grid[coord.y][coord.x] {
             Tile::Empty => {
                 self.empties.remove(&coord);
                 let tail = self.snake.pop_back().unwrap();
                 self.empties.insert(tail);
+                self._change_tile(coord, Tile::Head);
                 self._change_tile(tail, Tile::Empty);
             },
             Tile::Green => {
-                if !self._place_apple(Tile::Green) {
-                    self.state = State::Dead;
-                    return State::Dead;
+                self.score += 1;
+                self._change_tile(coord, Tile::Head);
+                if !self._place_rand(Tile::Green) {
+                    self.state = State::BoardFull;
+                    return self.snake_view();
                 }
             },
             Tile::Red => {
+                self.score -= 1;
                 let tail_one = self.snake.pop_back().unwrap();
-                self.empties.insert(tail_one);
                 let tail_two = self.snake.pop_back().unwrap();
-                self.empties.insert(tail_two);
                 self._change_tile(tail_one, Tile::Empty);
                 self._change_tile(tail_two, Tile::Empty);
-                self._place_apple(Tile::Red);
+                if self.snake.len() == 0 {
+                    self.state = State::Dead;
+                }
+                else {
+                    self._change_tile(coord, Tile::Head);
+                    self.empties.insert(tail_one);
+                    self.empties.insert(tail_two);
+                    self._place_rand(Tile::Red);
+                }
             },
             Tile::Body => {
-                self.empties.remove(&coord);
-                let _ = self.snake.pop_back().unwrap();
+                let tail = self.snake.pop_back().unwrap();
+                self._change_tile(tail, Tile::Empty);
+                if tail != coord {
+                    self._change_tile(coord, Tile::Boom);
+                    self.state = State::Dead;
+                }
+                else {
+                    self._change_tile(coord, Tile::Head);
+                }
             },
-            _ => {
-                unreachable!();
-            }
+            Tile::Wall => {
+                let tail = self.snake.pop_back().unwrap();
+                self._change_tile(tail, Tile::Empty);
+                self._change_tile(coord, Tile::Boom);
+                self.state = State::Dead;
+            },
+            _ => unreachable!()
         }
 
-        State::Alive
+        self.snake_view()
     }
 
-    pub fn new(height: usize, width: usize) -> PlayGround {
+    pub fn new(height: usize, width: usize, seed: StdRng) -> PlayGround {
         
         let mut p = PlayGround {
             height,
             width,
             grid: vec![vec![Tile::Empty; width + 2]; height + 2],
             empties: HashSet::<Coord>::new(),
-            seed: make_rng(),
+            seed: seed,
             snake: VecDeque::<Coord>::new(),
-            state: State::Alive,
-            counter: 0
+            head_pos: Coord { x: 0, y: 0 },
+            score: 3,
+            state: State::Alive
         };
 
         p._init_walls();
@@ -351,7 +370,7 @@ impl fmt::Display for PlayGround {
                 row
                     .iter()
                     .for_each(|tile| {
-                        construct.push(PlayGround::tile_to_char(tile))
+                        construct.push(tile_to_char(*tile))
                     });
                 construct.push('\n');
             });
@@ -365,7 +384,7 @@ mod tests {
 
     #[test]
     fn test_new_playground() {
-        let playgroung = PlayGround::new(10, 10);
+        let playgroung = PlayGround::new(10, 10, StdRng::seed_from_u64(42));
         assert_eq!(playgroung.snake.len(), 3);
     }
 }

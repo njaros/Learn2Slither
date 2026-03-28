@@ -25,3 +25,4 @@ en.subject.pdf
 # Added by cargo
 
 /target
+models/

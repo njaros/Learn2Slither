@@ -1,12 +1,11 @@
 [package]
-name = "qlearning"
+name = "play"
 edition = "2024"
 version.workspace = true
 depscription.workspace = true
 
 [dependencies]
-mathlib = { version = "0.1.0", path = "../mathlib" }
 playground = { version = "0.1.0", path = "../playground" }
 rand = "0.10.0"
-serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.149"
+termios = "0.3.3"
+trie = { version = "0.1.0", path = "../trie" }
