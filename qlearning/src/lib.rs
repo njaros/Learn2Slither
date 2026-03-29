@@ -14,22 +14,52 @@ pub struct RewardInterpretor {
 }
 // HAUT: idx = 0, DROITE 1, BAS 2, GAUCHE 3
 impl StateInterpretor {
-    pub fn env_to_state(env: &Vec<Vec<Tile>>) -> usize {
+    pub fn env_to_state(env: &Vec<Vec<Tile>>, pos_y: u32, pos_x: u32) -> usize {
+        println!("{pos_x} -- {pos_y}");
+        let base = 0;
+
+        // Find current position of the head in the map
+        let pos = if pos_x > 4 {
+            // En haut
+            if pos_y > 4 {
+                0
+            } else {
+                1
+            }
+        // A gauche
+        } else {
+            // En haut
+            if pos_y > 4 {
+                2
+            } else {
+                3
+            }
+        };
+
         env
             .iter()
             .enumerate()
             .fold(0usize, |acc, (idx, line)| {
                 let mut line_idx = 0usize;
+
                 while line[line_idx] == Tile::Empty {
                     line_idx += 1;
                 }
-                acc + (pow(8, idx) * match line[line_idx] {
+
+                // Encode the position in the map
+                let map_pos = pos * 2 * 2;
+
+                // Encode the vision
+                let vision = match line[line_idx] {
                     Tile::Wall => match line_idx { 0 => 0, _ => 1},
                     Tile::Body => match line_idx { 0 => 2, _ => 3},
                     Tile::Green => match line_idx { 0 => 4, _ => 5},
                     Tile::Red => match line_idx { 0 => 6, _ => 7},
                     _ => unreachable!()
-                })
+                };
+
+                acc + (map_pos + vision) * pow(8, idx)
+
             })
     }
 }
