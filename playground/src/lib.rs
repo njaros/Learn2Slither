@@ -13,7 +13,7 @@ use std::collections::{VecDeque, HashSet};
 use itertools::Itertools;
 use std::fmt;
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Tile {
     Empty,
     Green,
@@ -24,7 +24,7 @@ pub enum Tile {
     Boom
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum Dir {
     Up,
     Down,
@@ -52,7 +52,7 @@ impl fmt::Display for Tile {
     }
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum State {
     Alive,
     Dead,
@@ -82,6 +82,7 @@ impl Coord {
     }
 }
 
+#[derive(Debug)]
 pub struct PlayGround {
     height: usize,
     width: usize,
@@ -356,6 +357,10 @@ impl PlayGround {
         p._init_apples();
 
         p
+    }
+
+    pub fn get_head_pos(&self) -> (u32, u32) {
+        (self.head_pos.x as u32, self.head_pos.y as u32)
     }
 
 }

@@ -57,18 +57,22 @@ fn _train(agent: &mut Agent) -> Void {
             let mut playground: PlayGround = PlayGround::new(10, 10, make_rng());
             let env = &playground.snake_view();
             reward_interpretor.init(env);
-            let mut state = StateInterpretor::env_to_state(env);
+
+            let mut head_pos = playground.get_head_pos();
+
+            let mut state = StateInterpretor::env_to_state(env, head_pos.0, head_pos.1);
             let mut dir = agent.play(state);
             let mut env = playground.next(dir);
             while playground.is_alive() {
                 // print!("{playground}");
-                let next_state = StateInterpretor::env_to_state(&env);
+                let next_state = StateInterpretor::env_to_state(&env, head_pos.0, head_pos.1);
                 let reward = reward_interpretor.get_reward(&env);
                 agent.bellman(state, Some(next_state), dir_to_usize(dir), reward);
                 state = next_state;
                 // sleep(sleep_time);
                 dir = agent.play(state);
                 env = playground.next(dir);
+                head_pos = playground.get_head_pos();
                 // println!("try: {pouet}: score: {score}, best: {best_score}");
             }
             agent.bellman(state, None, dir_to_usize(dir), reward_interpretor.end_training_reward);
@@ -107,7 +111,7 @@ fn test(name: String, index: usize, retrain: Option<&String>) -> Void {
             println!("{playground}");
             sleep(sleep_time);
             let env = playground.snake_view();
-            let state = StateInterpretor::env_to_state(&env);
+            let state = StateInterpretor::env_to_state(&env, 0, 0);
             let dir = agent.play(state);
             playground.next(dir);
         }
