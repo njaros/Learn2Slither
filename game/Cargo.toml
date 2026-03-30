@@ -1,0 +1,13 @@
+[package]
+name = "game"
+edition = "2024"
+version.workspace = true
+depscription.workspace = true
+
+[dependencies]
+image = "0.25.10"
+piston = "1.0.0"
+piston_window = "0.146.0"
+playground = { version = "0.1.0", path = "../playground" }
+qlearning = { version = "0.1.0", path = "../qlearning" }
+vecmath = "1.0.0"

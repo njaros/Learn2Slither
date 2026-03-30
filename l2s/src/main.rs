@@ -23,8 +23,18 @@ fn main() -> Void {
         ]))
         .subcommand(Command::new("test").about("use a model to play").args([
             arg!(-n --name <Name> "Name of the model.").required(true),
-            arg!(-i --index <Index> "Index of the model (0 to 9").required(true).value_parser(value_parser!(usize)),
-            arg!(-r --retrain <Name> "Start a new training from this model").required(false)
+            arg!(-i --index <Index> "Index of the model (0 to 9").required(true)
+                .value_parser(value_parser!(usize)),
+            arg!(-r --retrain <Name> "Start a new training from this model").required(false),
+            arg!(-t --tall <Usize> "height of the board (3 to 100)").required(false)
+                .conflicts_with("retrain")
+                .value_parser(value_parser!(usize)),
+            arg!(-w --width <Usize> "width of the board (3 to 100)").required(false)
+                .conflicts_with("retrain")
+                .value_parser(value_parser!(usize)),
+            arg!(-s --sleep_time <U64> "time of a frame in millisec.").required(false)
+                .conflicts_with("retrain")
+                .value_parser(value_parser!(u64))
         ]))
         .subcommand_required(true)
         .get_matches();
@@ -38,7 +48,10 @@ fn main() -> Void {
         "test" => {
             let index = *ctx.get_one::<usize>("index").unwrap();
             let retrain = ctx.get_one::<String>("retrain");
-            test(name, index, retrain)?
+            let height = *ctx.get_one::<usize>("tall").unwrap_or(&10usize);
+            let width = *ctx.get_one::<usize>("width").unwrap_or(&10usize);
+            let sleep_time = *ctx.get_one::<u64>("sleep_time").unwrap_or(&100);
+            test(name, index, height, width, sleep_time, retrain)?
         },
         _ => unreachable!()
     };
@@ -95,16 +108,16 @@ fn train(name: String) -> Void {
     Ok(())
 }
 
-fn test(name: String, index: usize, retrain: Option<&String>) -> Void {
+fn test(name: String, index: usize, height: usize, width: usize, sleep_time: u64, retrain: Option<&String>) -> Void {
     let mut agent = Agent::from(name, index, retrain)?;
     if retrain.is_some() {
         _train(&mut agent)?;
     }
     else {
-        let sleep_time = Duration::from_millis(100);
-        let mut playground = PlayGround::new(10, 10, make_rng());
+        let sleep_time = Duration::from_millis(sleep_time);
+        let mut playground = PlayGround::new(height, width, make_rng());
         while playground.is_alive() {
-            println!("{playground}");
+            print!("{playground}");
             sleep(sleep_time);
             let env = playground.snake_view();
             let state = StateInterpretor::env_to_state(&env);
