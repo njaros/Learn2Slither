@@ -25,7 +25,7 @@ impl ETS for JajaV1 {
 	}
 
 	fn description(&self) -> String {
-		String::from("Take care about what is the nearest object and if it is juste besides for each size.")
+		String::from("Take care about what is the nearest object and if it is just besides for each size.")
 	}
 
 	fn env_to_state(&self, env: &Env) -> usize {	
@@ -48,11 +48,7 @@ impl ETS for JajaV1 {
 	}
 }
 
-/// Rust compiler has a stupid rule that attempt to use dyn keyword on a trait having
-/// just one structing using it.
-/// I implemented Dummy to make Rust compiler happy...
-/// It will be erased at Dadou_ETS implementation
-pub struct Dummy{}
+pub struct Dummy {}
 impl ETS for Dummy {
 
 	fn get_name(&self) -> String {

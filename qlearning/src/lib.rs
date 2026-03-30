@@ -1,12 +1,11 @@
 use playground::{Dir};
-use convenient_lib::Res;
+use convenient_lib::{Res, Void};
 use rand::{RngExt, make_rng, rngs::StdRng, seq::IndexedRandom};
 use serde::{Serialize, Deserialize};
 use std::io::{BufReader, BufWriter, Read};
 use serde_json::json;
 use std::fs;
 use interpretors::state::{ETSFactory, ets_lib::ETS};
-use std::error::Error;
 
 pub type QTable = Vec<Vec<f64>>;
 
@@ -51,7 +50,7 @@ impl Agent {
         })
     }
 
-    pub fn from(name: String, idx: usize, new_name: Option<&String>) -> Result<Agent, Box<dyn Error>> {
+    pub fn from(name: String, idx: usize, new_name: Option<&String>) -> Res<Agent> {
         let path = String::from("models/") + &name + "/" + &idx.to_string() + ".json";
         let file = fs::File::open(path)?;
         let mut contents = String::new();
@@ -77,7 +76,7 @@ impl Agent {
         )
     }
 
-    pub fn save(&self) -> Result<(), Box<dyn Error>> {
+    pub fn save(&self) -> Void {
         let folder_path = String::from("models/") + &self.name;
         fs::create_dir_all(&folder_path)?;
         self.best_models
