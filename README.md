@@ -38,6 +38,12 @@ When to modify the Q table:
 
 ## States ##
 
+### Where to define a new env to state Interpretor (ETS) ###
+
+1. go to interpretors/src/state/ets_lib.rs
+2. code a struct which implement the ETS trait
+3. patch the factory in interpretors/src/state/mod.rs to make it works
+
 ### 1- simple impl: lowcost + just on side awareness ###
 
 cardinal product of just beside Right->[E, S, #, G, R] * Up->[...] * Down[...] * Left->[...] = 5 * 5 * 5 * 5 = 625 different states
