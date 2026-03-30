@@ -906,11 +906,13 @@ dependencies = [
 name = "game"
 version = "0.1.0"
 dependencies = [
+ "convenient_lib",
  "image",
  "piston",
  "piston_window",
  "playground",
  "qlearning",
+ "rand 0.10.0",
  "vecmath",
 ]
 
