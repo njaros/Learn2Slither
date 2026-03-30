@@ -909,6 +909,8 @@ dependencies = [
  "convenient_lib",
  "image",
  "piston",
+ "piston_components",
+ "piston_ctx",
  "piston_window",
  "playground",
  "qlearning",
@@ -2021,6 +2023,24 @@ dependencies = [
  "piston-texture",
  "piston2d-graphics",
  "wgpu",
+]
+
+[[package]]
+name = "piston_components"
+version = "0.1.0"
+dependencies = [
+ "piston",
+ "piston_ctx",
+ "piston_window",
+]
+
+[[package]]
+name = "piston_ctx"
+version = "0.1.0"
+dependencies = [
+ "piston",
+ "piston_window",
+ "playground",
 ]
 
 [[package]]

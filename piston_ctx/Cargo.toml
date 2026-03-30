@@ -1,0 +1,10 @@
+[package]
+name = "piston_ctx"
+edition = "2024"
+version.workspace = true
+depscription.workspace = true
+
+[dependencies]
+piston = "1.0.0"
+piston_window = "0.146.0"
+playground = { version = "0.1.0", path = "../playground" }

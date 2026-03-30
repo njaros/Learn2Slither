@@ -8,6 +8,8 @@ depscription.workspace = true
 convenient_lib = { version = "0.1.0", path = "../convenient_lib" }
 image = "0.25.10"
 piston = "1.0.0"
+piston_components = { version = "0.1.0", path = "../piston_components" }
+piston_ctx = { version = "0.1.0", path = "../piston_ctx" }
 piston_window = "0.146.0"
 playground = { version = "0.1.0", path = "../playground" }
 qlearning = { version = "0.1.0", path = "../qlearning" }

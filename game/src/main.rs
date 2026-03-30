@@ -6,19 +6,7 @@ use glyph_cache::rusttype::GlyphCache;
 use playground::PlayGround;
 use wgpu_graphics::{Texture, TextureContext, TextureSettings};
 use std::path::Path;
-
-enum Ctx {
-    Lobby,
-    Train,
-    Test,
-    Play
-}
-
-pub struct CtxValues<'a> {
-    pub glyphs: GlyphCache<'a, TextureContext, Texture>,
-    pub playground: Option<PlayGround>,
-    pub ctx: Ctx
-}
+use piston_ctx::{Ctx, CtxValues};
 
 fn main() -> Void {
     let mut window: PistonWindow = WindowSettings::new("Learn2Slither", (1024, 768))
@@ -29,9 +17,9 @@ fn main() -> Void {
     let assets = Path::new("assets");
     let mut ctx_values = CtxValues {
         glyphs: window.load_font(
-                    assets.join("FiraSans-Regular.ttf"),
-                    TextureSettings::new()
-                ).unwrap(),
+            assets.join("FiraSans-Regular.ttf"),
+            TextureSettings::new()
+        ).unwrap(),
         playground: None,
         ctx: Ctx::Lobby
     };
