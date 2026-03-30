@@ -1,8 +1,8 @@
 use clap::{Command, arg, command, value_parser};
 use convenient_lib::Void;
+use interpretors::{reward::reward_interpretor::RewardInterpretor, state};
 use playground::{PlayGround, Dir};
-use std::error::Error;
-use qlearning::{Agent, StateInterpretor, RewardInterpretor};
+use qlearning::Agent;
 use rand::{make_rng, rngs::StdRng};
 use std::thread::sleep;
 use std::time::Duration;
@@ -19,7 +19,8 @@ fn dir_to_usize(dir: Dir) -> usize {
 fn main() -> Void {
     let matches = command!()
         .subcommand(Command::new("train").about("Train a new model.").args([
-            arg!(-n --name <Name> "Name of the model.").required(true)
+            arg!(-n --name <Name> "Name of the model.").required(true),
+            arg!(-e --ets <Name> "Name of the ETS to use")
         ]))
         .subcommand(Command::new("test").about("use a model to play").args([
             arg!(-n --name <Name> "Name of the model.").required(true),
@@ -44,7 +45,10 @@ fn main() -> Void {
     let name = ctx.get_one::<String>("name").unwrap().clone();
 
     match subcommand {
-        "train" => train(name)?,
+        "train" => {
+            let ets = ctx.get_one::<String>("ets").unwrap_or(&String::from("jaja_v1")).clone();
+            train(name, ets)?
+        },
         "test" => {
             let index = *ctx.get_one::<usize>("index").unwrap();
             let retrain = ctx.get_one::<String>("retrain");
@@ -70,12 +74,12 @@ fn _train(agent: &mut Agent) -> Void {
             let mut playground: PlayGround = PlayGround::new(10, 10, make_rng());
             let env = &playground.snake_view();
             reward_interpretor.init(env);
-            let mut state = StateInterpretor::env_to_state(env);
+            let mut state = agent.ets.env_to_state(env);
             let mut dir = agent.play(state);
             let mut env = playground.next(dir);
             while playground.is_alive() {
                 // print!("{playground}");
-                let next_state = StateInterpretor::env_to_state(&env);
+                let next_state = agent.ets.env_to_state(&env);
                 let reward = reward_interpretor.get_reward(&env);
                 agent.bellman(state, Some(next_state), dir_to_usize(dir), reward);
                 state = next_state;
@@ -101,8 +105,8 @@ fn _train(agent: &mut Agent) -> Void {
     Ok(())
 }
 
-fn train(name: String) -> Void {
-    let mut agent = Agent::new(4096, 4, name);
+fn train(name: String, ets_name: String) -> Void {
+    let mut agent = Agent::new(ets_name, name)?;
     _train(&mut agent)?;
 
     Ok(())
@@ -120,7 +124,7 @@ fn test(name: String, index: usize, height: usize, width: usize, sleep_time: u64
             print!("{playground}");
             sleep(sleep_time);
             let env = playground.snake_view();
-            let state = StateInterpretor::env_to_state(&env);
+            let state = agent.ets.env_to_state(&env);
             let dir = agent.play(state);
             playground.next(dir);
         }

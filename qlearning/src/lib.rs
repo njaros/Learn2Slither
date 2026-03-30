@@ -1,76 +1,12 @@
-use mathlib::pow;
-use playground::{Dir, Tile};
+use playground::{Dir};
+use convenient_lib::Res;
 use rand::{RngExt, make_rng, rngs::StdRng, seq::IndexedRandom};
 use serde::{Serialize, Deserialize};
 use std::io::{BufReader, BufWriter, Read};
 use serde_json::json;
 use std::fs;
+use interpretors::state::{ETSFactory, ets_lib::ETS};
 use std::error::Error;
-
-pub struct StateInterpretor {}
-pub struct RewardInterpretor {
-    old_env: Vec<Vec<Tile>>,
-    pub end_training_reward: f64
-}
-// HAUT: idx = 0, DROITE 1, BAS 2, GAUCHE 3
-impl StateInterpretor {
-    pub fn env_to_state(env: &Vec<Vec<Tile>>) -> usize {
-        env
-            .iter()
-            .enumerate()
-            .fold(0usize, |acc, (idx, line)| {
-                let mut line_idx = 0usize;
-                while line[line_idx] == Tile::Empty {
-                    line_idx += 1;
-                }
-                acc + (pow(8, idx) * match line[line_idx] {
-                    Tile::Wall => match line_idx { 0 => 0, _ => 1},
-                    Tile::Body => match line_idx { 0 => 2, _ => 3},
-                    Tile::Green => match line_idx { 0 => 4, _ => 5},
-                    Tile::Red => match line_idx { 0 => 6, _ => 7},
-                    _ => unreachable!()
-                })
-            })
-    }
-}
-
-impl RewardInterpretor {
-
-    pub fn new() -> RewardInterpretor {
-        RewardInterpretor { old_env: vec![vec![]], end_training_reward: -100. }
-    }
-
-    fn _find_lower_dir(&self, new_env: &Vec<Vec<Tile>>) -> usize {
-        new_env
-            .iter()
-            .zip(self.old_env.iter())
-            .enumerate()
-            .fold(0usize, |acc, (idx, (n, o))| {
-                match n.len() < o.len() {
-                    true => idx,
-                    false => acc
-                }
-            })
-    }
-
-    pub fn init(&mut self, init_env: &Vec<Vec<Tile>>) {
-        self.old_env = init_env.clone();
-    }
-
-    pub fn get_reward(&mut self, new_env: &Vec<Vec<Tile>>) -> f64 {
-        let row_idx = self._find_lower_dir(new_env);
-        let reward = match self.old_env[row_idx][0] {
-            Tile::Empty => -1.,
-            Tile::Green => 20.,
-            Tile::Red => -30.,
-            Tile::Body => -30.,
-            _ => unreachable!()
-        };
-        self.old_env = new_env.clone();
-        reward
-    }
-
-}
 
 pub type QTable = Vec<Vec<f64>>;
 
@@ -78,11 +14,13 @@ pub type QTable = Vec<Vec<f64>>;
 struct Model {
     score: u32,
     model: QTable,
+    ets_name: String,
     name: String
 }
 
 pub struct Agent {
     name: String,
+    pub ets: Box<dyn ETS>,
     q_table: QTable,
     best_models: Vec<(QTable, u32)>,
     learning_rate: f64,
@@ -95,10 +33,14 @@ pub struct Agent {
 
 impl Agent {
 
-    pub fn new(state_cardinal: usize, action_cardinal: usize, name: String) -> Agent {
-        Agent {
+    pub fn new(ets_name: String, name: String) -> Res<Agent> {
+        // duplicate all data to avoid the Rust ownership issues.
+        let ets_for_cardinal = ETSFactory::create(ets_name.clone())?;
+
+        Ok(Agent {
             name: name,
-            q_table: vec![vec![1f64; action_cardinal]; state_cardinal],
+            ets: ETSFactory::create(ets_name)?,
+            q_table: vec![vec![1f64; 4]; ets_for_cardinal.get_cardinal()],
             best_models: vec![],
             learning_rate: 0.1,
             discount_factor: 0.,
@@ -106,7 +48,7 @@ impl Agent {
             exploration_rate: 0.5,
             seed: make_rng(),
             actions: [Dir::Up, Dir::Right, Dir::Down, Dir::Left]
-        }
+        })
     }
 
     pub fn from(name: String, idx: usize, new_name: Option<&String>) -> Result<Agent, Box<dyn Error>> {
@@ -118,9 +60,11 @@ impl Agent {
 
         let parsed_json = serde_json::from_str::<Model>(&contents)?;
         let q_table = parsed_json.model;
+        let ets_name = parsed_json.ets_name;
         Ok(
             Agent {
                 name: new_name.unwrap_or(&name).clone(),
+                ets: ETSFactory::create(ets_name)?,
                 q_table,
                 best_models: vec![],
                 learning_rate: 0.1,
@@ -148,7 +92,8 @@ impl Agent {
                         {
                             "score": score,
                             "model": model,
-                            "name": self.name
+                            "name": self.name,
+                            "ets_name": self.ets.get_name()
                         }
                     );
                     match serde_json::to_writer_pretty(&mut writer, &v) {
