@@ -1,9 +1,9 @@
-use playground::{PlayGround, Dir};
-use std::error::Error;
-use std::io::{stdout, stdin, Read, Write};
-use termios::{Termios, TCSANOW, ECHO, ICANON, tcsetattr};
-use trie::Trie;
+use playground::{Dir, PlayGround};
 use rand::make_rng;
+use std::error::Error;
+use std::io::{Read, Write, stdin, stdout};
+use termios::{ECHO, ICANON, TCSANOW, Termios, tcsetattr};
+use trie::Trie;
 
 /// Return new termios, old termios.
 fn set_terminal() -> Result<Termios, Box<dyn Error>> {
@@ -23,7 +23,7 @@ fn init_inputs() -> Trie {
         (vec![119], Dir::Up),
         (vec![100], Dir::Right),
         (vec![115], Dir::Down),
-        (vec![97], Dir::Left)
+        (vec![97], Dir::Left),
     ])
 }
 
@@ -38,7 +38,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     while buffer[0] != 113 && playground.is_alive() {
         reader.read(&mut buffer)?;
         match trie.seek(buffer[0]) {
-            None => {},
+            None => {}
             Some(dir) => {
                 playground.next(dir);
                 playground.print_snake_view();
@@ -47,6 +47,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     println!("{playground}");
     tcsetattr(0, TCSANOW, &old_termios).unwrap();
-    
+
     Ok(())
 }

@@ -1,57 +1,67 @@
-use piston_components::components::buttons::button;
-use std::path::Path;
-use piston_window::{graphics::Context, wgpu::Device, wgpu_graphics::WgpuGraphics};
 use graphics::*;
-use wgpu_graphics::{Texture, TextureSettings};
+use piston_components::components::PistonComponent;
+use piston_components::components::buttons::{MyButton, Style};
+use piston_ctx::{Ctx, CtxValues};
+use piston_window::{graphics::Context, wgpu::Device, wgpu_graphics::WgpuGraphics};
 use piston_window::{graphics::Text, *};
-
-use crate::{Ctx, CtxValues};
+use std::path::Path;
+use wgpu_graphics::{Texture, TextureSettings};
 
 pub fn lobby(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
+    let mut test_button = MyButton::new(
+        Style::BLUE,
+        [10., 650., 200., 75.],
+        "     Testing".into(),
+        |ctx| ctx.ctx = Ctx::Test,
+    );
 
-	window.draw_2d(e, |c, g, _| {
-		clear([0.8, 0.8, 0.8, 1.0], g);
-		g.clear_stencil(0);
+    let mut train_button = MyButton::new(
+        Style::GREEN,
+        [250., 650., 200., 75.],
+        "     Training".into(),
+        |ctx| ctx.ctx = Ctx::Train,
+    );
 
-		let transform = c.transform.trans(10.0, 100.0);
-	
-		button(
-			&c,
-			g,
-			&e,
-			ctx,
-			[10., 650., 200., 75.],
-			[1., 0., 0., 1.],
-			[0., 0., 0., 0.],
-			String::from("Testing"),
-			32,
-			[0.0, 0.0, 0.0, 1.0],
-			|ctx| {
-				ctx.ctx = Ctx::Test
-			}
-		);
-		Rectangle::new([1.0, 0.0, 0.0, 1.0])
-			.draw([0.0, 0.0, 100.0, 100.0], &c.draw_state, c.transform, g);
-		text::Text::new_color([0.0, 0.0, 0.0, 1.0], 32).draw(
-			"Hello world!",
-			&mut ctx.glyphs,
-			&c.draw_state,
-			transform, g
-		).unwrap();
-	});
-	
-	if let Some(Button::Keyboard(Key::A)) = e.press_args() {
-		println!("Welcome to Training board");
-		ctx.ctx = Ctx::Train;
-	}
+    let mut play_button = MyButton::new(
+        Style::BLUE,
+        [490., 650., 200., 75.],
+        "        Play".into(),
+        |ctx| ctx.ctx = Ctx::Play,
+    );
 
-	if let Some(Button::Keyboard(Key::S)) = e.press_args() {
-		println!("Welcome to Testing board");
-		ctx.ctx = Ctx::Test;
-	}
+    let mut exit_button = MyButton::new(
+        Style::RED,
+        [730., 650., 200., 75.],
+        "        EXIT".into(),
+        |ctx| ctx.exit = true,
+    );
 
-	if let Some(Button::Keyboard(Key::P)) = e.press_args() {
-		println!("Welcome to Playing board");
-		ctx.ctx = Ctx::Play;
-	}
+    window.draw_2d(e, |c, g, _| {
+        clear([0.8, 0.8, 0.8, 1.0], g);
+
+        test_button.draw(&c, g, &e, ctx);
+        train_button.draw(&c, g, &e, ctx);
+        play_button.draw(&c, g, &e, ctx);
+        exit_button.draw(&c, g, &e, ctx);
+    });
+
+    test_button.handle_event(e, ctx);
+    train_button.handle_event(e, ctx);
+    play_button.handle_event(e, ctx);
+    exit_button.handle_event(e, ctx);
+
+    if let Some(Button::Keyboard(Key::A)) = e.press_args() {
+        println!("Welcome to Training board");
+        ctx.ctx = Ctx::Train;
+    }
+
+    if let Some(Button::Keyboard(Key::S)) = e.press_args() {
+        println!("Welcome to Testing board");
+        ctx.ctx = Ctx::Test;
+    }
+
+    if let Some(Button::Keyboard(Key::P)) = e.press_args() {
+        println!("Welcome to Playing board");
+        ctx.ctx = Ctx::Play;
+    }
 }

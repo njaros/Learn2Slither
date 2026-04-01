@@ -2029,6 +2029,7 @@ dependencies = [
 name = "piston_components"
 version = "0.1.0"
 dependencies = [
+ "mathlib",
  "piston",
  "piston_ctx",
  "piston_window",

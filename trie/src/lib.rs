@@ -1,47 +1,51 @@
-use std::collections::BTreeMap;
 use playground::Dir;
+use std::collections::BTreeMap;
 
 #[derive(Clone)]
 pub struct TrieNode {
     end: bool,
     next: BTreeMap<u8, TrieNode>,
-    dir: Dir
+    dir: Dir,
 }
 
 /// Structure to parse user inputs.
 pub struct Trie {
     root: TrieNode,
-    cursor: TrieNode
+    cursor: TrieNode,
 }
 
 impl Trie {
     pub fn from(words: &Vec<(Vec<u8>, Dir)>) -> Trie {
-        let root = words
-            .iter()
-            .fold(TrieNode {
+        let root = words.iter().fold(
+            TrieNode {
                 end: false,
                 next: BTreeMap::<u8, TrieNode>::new(),
-                dir: Dir::Down
-            }, |mut acc, (word, dir)| {
+                dir: Dir::Down,
+            },
+            |mut acc, (word, dir)| {
                 let mut current = &mut acc;
                 for i in 0..word.len() {
                     if current.next.get(&word[i]).is_none() {
-                        current.next.insert(word[i], TrieNode {
-                            end: false,
-                            next: BTreeMap::<u8, TrieNode>::new(),
-                            dir: dir.clone()
-                        });
+                        current.next.insert(
+                            word[i],
+                            TrieNode {
+                                end: false,
+                                next: BTreeMap::<u8, TrieNode>::new(),
+                                dir: dir.clone(),
+                            },
+                        );
                     }
                     current = current.next.get_mut(&word[i]).unwrap();
                 }
                 current.end = true;
                 acc
-            });
+            },
+        );
 
         // Cloning because rust....
         Trie {
             root: root.clone(),
-            cursor: root
+            cursor: root,
         }
     }
 
@@ -63,7 +67,7 @@ impl Trie {
                         None
                     }
                 }
-            },
+            }
             Some(node) => {
                 self.cursor = node.clone();
                 if self.cursor.end {

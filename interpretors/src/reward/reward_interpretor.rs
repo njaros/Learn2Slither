@@ -2,13 +2,15 @@ use playground::Tile;
 
 pub struct RewardInterpretor {
     old_env: Vec<Vec<Tile>>,
-    pub end_training_reward: f64
+    pub end_training_reward: f64,
 }
 
 impl RewardInterpretor {
-
     pub fn new() -> RewardInterpretor {
-        RewardInterpretor { old_env: vec![vec![]], end_training_reward: -100. }
+        RewardInterpretor {
+            old_env: vec![vec![]],
+            end_training_reward: -100.,
+        }
     }
 
     fn _find_lower_dir(&self, new_env: &Vec<Vec<Tile>>) -> usize {
@@ -16,11 +18,9 @@ impl RewardInterpretor {
             .iter()
             .zip(self.old_env.iter())
             .enumerate()
-            .fold(0usize, |acc, (idx, (n, o))| {
-                match n.len() < o.len() {
-                    true => idx,
-                    false => acc
-                }
+            .fold(0usize, |acc, (idx, (n, o))| match n.len() < o.len() {
+                true => idx,
+                false => acc,
             })
     }
 
@@ -35,10 +35,9 @@ impl RewardInterpretor {
             Tile::Green => 20.,
             Tile::Red => -30.,
             Tile::Body => -30.,
-            _ => unreachable!()
+            _ => unreachable!(),
         };
         self.old_env = new_env.clone();
         reward
     }
-
 }
