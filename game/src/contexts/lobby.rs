@@ -1,4 +1,4 @@
-use piston_components::components::buttons;
+use piston_components::components::buttons::button;
 use std::path::Path;
 use piston_window::{graphics::Context, wgpu::Device, wgpu_graphics::WgpuGraphics};
 use graphics::*;
@@ -15,6 +15,21 @@ pub fn lobby(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
 
 		let transform = c.transform.trans(10.0, 100.0);
 	
+		button(
+			&c,
+			g,
+			&e,
+			ctx,
+			[10., 650., 200., 75.],
+			[1., 0., 0., 1.],
+			[0., 0., 0., 0.],
+			String::from("Testing"),
+			32,
+			[0.0, 0.0, 0.0, 1.0],
+			|ctx| {
+				ctx.ctx = Ctx::Test
+			}
+		);
 		Rectangle::new([1.0, 0.0, 0.0, 1.0])
 			.draw([0.0, 0.0, 100.0, 100.0], &c.draw_state, c.transform, g);
 		text::Text::new_color([0.0, 0.0, 0.0, 1.0], 32).draw(
