@@ -265,6 +265,10 @@ impl PlayGround {
         });
     }
 
+    pub fn get_grid(&self) -> &Vec<Vec<Tile>> {
+        &self.grid
+    }
+
     pub fn next(&mut self, dir: Dir) -> Vec<Vec<Tile>> {
         if self.state != State::Alive {
             return self.snake_view();

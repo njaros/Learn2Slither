@@ -1,8 +1,8 @@
-use piston_window::*;
 use graphics::*;
 use piston_components::components::PistonComponent;
 use piston_components::components::buttons::{MyButton, Style};
 use piston_ctx::{Ctx, CtxValues};
+use piston_window::*;
 
 pub fn lobby(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
     let mut test_button = MyButton::new(
@@ -46,5 +46,4 @@ pub fn lobby(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
     train_button.handle_event(e, ctx);
     play_button.handle_event(e, ctx);
     exit_button.handle_event(e, ctx);
-
 }

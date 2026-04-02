@@ -28,7 +28,7 @@ fn main() -> Void {
         selected_width: 10,
     };
 
-    // window.set_lazy(true);
+    window.set_lazy(true);
 
     while let Some(e) = window.next()
         && !ctx_values.exit

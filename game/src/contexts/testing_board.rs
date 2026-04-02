@@ -15,7 +15,7 @@ pub fn testing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) 
         "       HOME".into(),
         |ctx| ctx.ctx = Ctx::Lobby,
     );
-    
+
     window.draw_2d(e, |c, g, _| {
         clear([0.8, 0.8, 0.8, 1.0], g);
         g.clear_stencil(0);
@@ -43,5 +43,4 @@ pub fn testing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) 
     });
 
     back_button.handle_event(e, ctx);
-
 }
