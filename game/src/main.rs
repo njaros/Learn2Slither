@@ -28,7 +28,7 @@ fn main() -> Void {
         selected_width: 10,
     };
 
-    window.set_lazy(true);
+    // window.set_lazy(true);
 
     while let Some(e) = window.next()
         && !ctx_values.exit
@@ -41,6 +41,8 @@ fn main() -> Void {
             }
             Ctx::Play => contexts::playing_board::playing_board(&mut window, &e, &mut ctx_values),
         }
+
+        // Saving mouse's params.
         if let Some(pos) = e.mouse_cursor_args() {
             ctx_values.last_mouse_pos = Some(pos);
         }

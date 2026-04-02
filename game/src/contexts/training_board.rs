@@ -11,7 +11,7 @@ use wgpu_graphics::{Texture, TextureSettings};
 pub fn training_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
     let mut back_button = MyButton::new(
         Style::RED,
-        [730., 650., 200., 75.],
+        [772., 650., 200., 75.],
         "       HOME".into(),
         |ctx| ctx.ctx = Ctx::Lobby,
     );

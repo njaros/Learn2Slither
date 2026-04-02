@@ -1,37 +1,34 @@
+use piston_window::*;
 use graphics::*;
 use piston_components::components::PistonComponent;
 use piston_components::components::buttons::{MyButton, Style};
 use piston_ctx::{Ctx, CtxValues};
-use piston_window::{graphics::Context, wgpu::Device, wgpu_graphics::WgpuGraphics};
-use piston_window::{graphics::Text, *};
-use std::path::Path;
-use wgpu_graphics::{Texture, TextureSettings};
 
 pub fn lobby(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
     let mut test_button = MyButton::new(
         Style::BLUE,
-        [10., 650., 200., 75.],
-        "     Testing".into(),
+        [52., 650., 200., 75.],
+        "     TESTING".into(),
         |ctx| ctx.ctx = Ctx::Test,
     );
 
     let mut train_button = MyButton::new(
         Style::GREEN,
-        [250., 650., 200., 75.],
-        "     Training".into(),
+        [292., 650., 200., 75.],
+        "     TRAINING".into(),
         |ctx| ctx.ctx = Ctx::Train,
     );
 
     let mut play_button = MyButton::new(
         Style::BLUE,
-        [490., 650., 200., 75.],
-        "        Play".into(),
+        [532., 650., 200., 75.],
+        "        PLAY".into(),
         |ctx| ctx.ctx = Ctx::Play,
     );
 
     let mut exit_button = MyButton::new(
         Style::RED,
-        [730., 650., 200., 75.],
+        [772., 650., 200., 75.],
         "        EXIT".into(),
         |ctx| ctx.exit = true,
     );
@@ -50,18 +47,4 @@ pub fn lobby(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
     play_button.handle_event(e, ctx);
     exit_button.handle_event(e, ctx);
 
-    if let Some(Button::Keyboard(Key::A)) = e.press_args() {
-        println!("Welcome to Training board");
-        ctx.ctx = Ctx::Train;
-    }
-
-    if let Some(Button::Keyboard(Key::S)) = e.press_args() {
-        println!("Welcome to Testing board");
-        ctx.ctx = Ctx::Test;
-    }
-
-    if let Some(Button::Keyboard(Key::P)) = e.press_args() {
-        println!("Welcome to Playing board");
-        ctx.ctx = Ctx::Play;
-    }
 }

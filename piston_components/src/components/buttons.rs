@@ -81,7 +81,7 @@ impl PistonComponent for MyButton {
         Rectangle::new_border(self.border_color, 2.0).draw(rect, &c.draw_state, c.transform, g);
         let transform = c.transform.trans(
             self.button_shapes[0],
-            self.button_shapes[1] + 32. + (self.button_shapes[3] - 32.) / 2.,
+            self.button_shapes[1] + 32. + (self.button_shapes[3] - 40.) / 2.,
         );
         text::Text::new_color(self.text_color, 32)
             .draw(&self.text, &mut ctx.glyphs, &c.draw_state, transform, g)
