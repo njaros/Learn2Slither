@@ -9,12 +9,12 @@ impl ETSFactory {
             "jaja_v1" => Ok(Box::new(ets_lib::JajaV1 {})),
             _ => Err(format!(
                 "{ets_name} not implemented. choose one of those: [{}]",
-                list_all_ets()
+                list_all_ets().join(", ")
             )),
         }
     }
 }
 
-pub fn list_all_ets() -> String {
-    vec!["jaja_v1", "dummy"].join(", ")
+pub fn list_all_ets() -> Vec<String> {
+    vec!["jaja_v1".into(), "dummy".into()]
 }

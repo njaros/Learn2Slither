@@ -2,7 +2,7 @@ mod contexts;
 use convenient_lib::Void;
 use glyph_cache::rusttype::GlyphCache;
 use graphics::*;
-use piston_ctx::{Ctx, CtxValues};
+use piston_ctx::{Ctx, CtxValues, TrainingParams};
 use piston_window::*;
 use playground::PlayGround;
 use std::path::Path;
@@ -26,6 +26,9 @@ fn main() -> Void {
         playground: None,
         selected_height: 10,
         selected_width: 10,
+        training_params: TrainingParams::new(),
+        agent: None,
+        model: None,
     };
 
     window.set_lazy(true);

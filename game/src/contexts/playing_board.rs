@@ -213,6 +213,18 @@ fn play(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
             });
         });
 
+        Rectangle::new(color::CYAN).draw([750., 3., 270., 763.], &c.draw_state, c.transform, g);
+
+        Text::new(32)
+            .draw_pos(
+                "PLAYING BOARD",
+                [780., 50.],
+                &mut ctx.glyphs,
+                &c.draw_state,
+                c.transform,
+                g,
+            )
+            .unwrap();
         Text::new(40)
             .draw_pos(
                 &format!("Score: {}", score.to_string()),

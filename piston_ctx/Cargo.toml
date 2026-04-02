@@ -8,3 +8,4 @@ depscription.workspace = true
 piston = "1.0.0"
 piston_window = "0.146.0"
 playground = { version = "0.1.0", path = "../playground" }
+qlearning = { version = "0.1.0", path = "../qlearning" }

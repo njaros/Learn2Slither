@@ -1,4 +1,5 @@
 use graphics::*;
+use interpretors::state::list_all_ets;
 use piston_components::components::{
     PistonComponent,
     buttons::{MyButton, Style},
@@ -8,13 +9,24 @@ use piston_window::{graphics::Context, wgpu::Device, wgpu_graphics::WgpuGraphics
 use piston_window::{graphics::Text, *};
 use wgpu_graphics::{Texture, TextureSettings};
 
-pub fn training_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
+pub fn training_form(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
     let mut back_button = MyButton::new(
         Style::RED,
         [772., 650., 200., 75.],
-        "       HOME".into(),
+        "     CANCEL".into(),
         |ctx| ctx.ctx = Ctx::Lobby,
     );
+
+    // let etx_buttons = list_all_ets()
+    //     .iter()
+    //     .enumerate()
+    //     .map(|(idx, ets_name)| MyButton::new(
+    //         Style::BLUE,
+    //         [700., 100. + 150. * idx as f64, 300., 100.],
+    //         ets_name.clone(),
+    //         |ctx| ctx.training_params.ets = ets_name.clone(),
+    //     ))
+    //     .collect::<Vec<_>>();
 
     window.draw_2d(e, |c, g, _| {
         clear([0.8, 0.8, 0.8, 1.0], g);
@@ -29,9 +41,11 @@ pub fn training_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues)
     });
 
     back_button.handle_event(e, ctx);
+}
 
-    if let Some(Button::Keyboard(Key::L)) = e.press_args() {
-        println!("Welcome to Training lobby");
-        ctx.ctx = Ctx::Lobby;
+pub fn training_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
+    match ctx.agent {
+        None => training_form(window, e, ctx),
+        _ => {}
     }
 }

@@ -908,6 +908,7 @@ version = "0.1.0"
 dependencies = [
  "convenient_lib",
  "image",
+ "interpretors",
  "piston",
  "piston_components",
  "piston_ctx",
@@ -2042,6 +2043,7 @@ dependencies = [
  "piston",
  "piston_window",
  "playground",
+ "qlearning",
 ]
 
 [[package]]
