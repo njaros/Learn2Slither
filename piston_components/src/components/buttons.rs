@@ -93,9 +93,9 @@ impl PistonComponent for MyButton {
             if button == Button::Mouse(MouseButton::Left) {
                 match self._cursor_in(ctx) {
                     false => {}
-                    true => (self.on_click)(ctx)
-				}
-			}
-		}
+                    true => (self.on_click)(ctx),
+                }
+            }
+        }
     }
 }

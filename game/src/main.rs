@@ -25,7 +25,7 @@ fn main() -> Void {
         exit: false,
         playground: None,
         selected_height: 10,
-        selected_width: 10
+        selected_width: 10,
     };
 
     window.set_lazy(true);

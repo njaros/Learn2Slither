@@ -6,7 +6,9 @@ pub fn pow(a: usize, b: usize) -> usize {
 }
 
 pub fn lerp<T>(min: T, max: T, ratio: f64) -> T
-where T: Into<f64> + From<f64> {
+where
+    T: Into<f64> + From<f64>,
+{
     let minf = min.into();
     let maxf = max.into();
     (minf + (ratio * (maxf - minf))).into()
