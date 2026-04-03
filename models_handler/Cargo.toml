@@ -1,0 +1,8 @@
+[package]
+name = "models_handler"
+edition = "2024"
+version.workspace = true
+depscription.workspace = true
+
+[dependencies]
+convenient_lib = { version = "0.1.0", path = "../convenient_lib" }

@@ -8,6 +8,7 @@ depscription.workspace = true
 convenient_lib = { version = "0.1.0", path = "../convenient_lib" }
 image = "0.25.10"
 interpretors = { version = "0.1.0", path = "../interpretors" }
+models_handler = { version = "0.1.0", path = "../models_handler" }
 piston = "1.0.0"
 piston_components = { version = "0.1.0", path = "../piston_components" }
 piston_ctx = { version = "0.1.0", path = "../piston_ctx" }

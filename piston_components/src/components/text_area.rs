@@ -44,7 +44,7 @@ impl PistonComponent for TextArea {
             [
                 self.pos[0],
                 self.pos[1],
-                4./5. * self.font_size as f64 * (self.max_len + 2) as f64,
+                2./3. * self.font_size as f64 * (self.max_len + 2) as f64,
                 4./3. * (self.font_size as f64 + 0.5)
             ],
             &c.draw_state, 
@@ -69,7 +69,7 @@ impl PistonComponent for TextArea {
                     if key == Key::Backspace {
                         (self.store_val)(ctx).pop();
                     }
-                    else if (self.store_val)(ctx).len() <= self.max_len {
+                    else if (self.store_val)(ctx).len() < self.max_len {
                         if (key >= Key::A && key <= Key::Z)
                         || (key >= Key::D0 && key <= Key::D9) {
                             (self.store_val)(ctx).push(char::from_u32(key.into()).unwrap())
