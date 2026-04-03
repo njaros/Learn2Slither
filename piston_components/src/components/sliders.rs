@@ -10,7 +10,7 @@ pub struct Slider {
     current: usize,
     visual_shapes: [f64; 4],
     shapes: [f64; 4],
-    on_change: fn(&mut CtxValues),
+    store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut usize,
 }
 
 impl Slider {
@@ -27,23 +27,16 @@ impl Slider {
         }
     }
 
-    pub fn cursor_to_current(
-        x: f64,
-        h_decal: f64,
-        x_min: f64,
-        len: f64,
-        min: usize,
-        max: usize,
-    ) -> usize {
-        let mut decal_mouse = x - h_decal / 2.;
-        if decal_mouse < x_min {
-            decal_mouse = x_min;
+    fn _cursor_to_current(&self, x: f64) -> usize {
+        let mut decal_mouse = x - self.shapes[3] / 2.;
+        if decal_mouse < self.shapes[0] {
+            decal_mouse = self.shapes[0];
         }
-        if decal_mouse > x_min + len - h_decal {
-            decal_mouse = x_min + len - h_decal;
+        if decal_mouse > self.shapes[0] + self.shapes[2] - self.shapes[3] {
+            decal_mouse = self.shapes[0] + self.shapes[2] - self.shapes[3];
         }
-        let lerp_val = (decal_mouse - x_min) / (len - h_decal);
-        lerp_usize(min, max, lerp_val)
+        let lerp_val = (decal_mouse - self.shapes[0]) / (self.shapes[2] - self.shapes[3]);
+        lerp_usize(self.min, self.max, lerp_val)
     }
 
     pub fn new(
@@ -51,7 +44,7 @@ impl Slider {
         max: usize,
         current: usize,
         shapes: [f64; 4],
-        on_change: fn(&mut CtxValues),
+        store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut usize,
     ) -> Slider {
         assert!(
             current >= min && current <= max,
@@ -69,7 +62,7 @@ impl Slider {
             current,
             visual_shapes: shapes,
             shapes: true_shapes,
-            on_change,
+            store_val,
         }
     }
 }
@@ -96,11 +89,13 @@ impl PistonComponent for Slider {
         );
     }
 
-    fn handle_event(&mut self, _: &piston::Event, ctx: &mut CtxValues) {
+    fn handle_event<'a>(&mut self, _: &piston::Event, ctx: &'a mut CtxValues) {
         if ctx.mouse_pressed {
             match self._cursor_in(ctx) {
                 false => {}
-                true => (self.on_change)(ctx),
+                true => {
+                    *(self.store_val)(ctx) = self._cursor_to_current(ctx.last_mouse_pos.unwrap()[0])
+                }
             }
         }
     }

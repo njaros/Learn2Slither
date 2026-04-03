@@ -14,9 +14,9 @@ pub struct TrainingParams {
     pub interactive: bool,
     pub rounds: usize,
     pub ets: String,
-    pub from: Option<String>,
+    pub from: Option<(String, usize)>,
     pub pause: bool,
-    pub speed: f64,
+    pub speed_time: usize,
     pub step_by_step: bool,
     pub name: String,
 }
@@ -24,12 +24,12 @@ pub struct TrainingParams {
 impl TrainingParams {
     pub fn new() -> Self {
         Self {
-            interactive: true,
+            interactive: false,
             rounds: 2500,
-            ets: "jajav1".into(),
+            ets: "jaja_v1".into(),
             from: None,
             pause: false,
-            speed: 0.5,
+            speed_time: 100,
             step_by_step: false,
             name: "no_name".into(),
         }
@@ -48,6 +48,7 @@ pub struct CtxValues<'a> {
     // App navigation contexts
     pub ctx: Ctx,
     pub mouse_pressed: bool,
+    pub lshift_pressed: bool,
     pub last_mouse_pos: Option<[f64; 2]>,
     pub exit: bool,
 

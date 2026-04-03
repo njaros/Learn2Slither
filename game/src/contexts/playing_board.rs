@@ -55,8 +55,7 @@ fn build_playground(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
 
     let mut slider_width =
         Slider::new(10, 50, ctx.selected_width, [200., 200., 500., 60.], |ctx| {
-            ctx.selected_width =
-                Slider::cursor_to_current(ctx.last_mouse_pos.unwrap()[0], 60., 200., 500., 10, 50)
+            &mut ctx.selected_width
         });
 
     let mut slider_height = Slider::new(
@@ -64,10 +63,7 @@ fn build_playground(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
         50,
         ctx.selected_height,
         [200., 450., 500., 60.],
-        |ctx| {
-            ctx.selected_height =
-                Slider::cursor_to_current(ctx.last_mouse_pos.unwrap()[0], 60., 200., 500., 10, 50)
-        },
+        |ctx| &mut ctx.selected_height,
     );
 
     window.draw_2d(e, |c, g, _| {

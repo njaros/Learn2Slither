@@ -99,3 +99,106 @@ impl PistonComponent for MyButton {
         }
     }
 }
+
+pub struct ButtonStoreVal<T: Clone + PartialEq> {
+    normal_color: Color,
+    hover_color: Color,
+    selected_color: Color,
+    border_color: Color,
+    text_color: Color,
+    button_shapes: [f64; 4],
+    text: String,
+    val: T,
+    store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut T,
+}
+
+impl<T: Clone + PartialEq> ButtonStoreVal<T> {
+    fn _cursor_in(&self, ctx: &CtxValues) -> bool {
+        let l_border = self.button_shapes[0];
+        let r_border = l_border + self.button_shapes[2];
+        let u_border = self.button_shapes[1];
+        let d_border = u_border + self.button_shapes[3];
+        match ctx.last_mouse_pos {
+            None => false,
+            Some([pos_x, pos_y]) => {
+                pos_x > l_border && pos_x < r_border && pos_y > u_border && pos_y < d_border
+            }
+        }
+    }
+
+    pub fn new(
+        style: Style,
+        button_shapes: [f64; 4],
+        text: String,
+        val: T,
+        store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut T,
+    ) -> Self {
+        let (normal_color, hover_color, selected_color, border_color, text_color) = match style {
+            Style::BLUE => (
+                color::CYAN,
+                color::TEAL,
+                color::GREEN,
+                color::BLUE,
+                color::BLACK,
+            ),
+            Style::RED => (
+                color::MAGENTA,
+                color::PURPLE,
+                color::MAROON,
+                color::RED,
+                color::BLACK,
+            ),
+            Style::GREEN => (
+                color::LIME,
+                color::GREEN,
+                color::BLUE,
+                color::hex("006400"),
+                color::BLACK,
+            ),
+        };
+        Self {
+            normal_color,
+            hover_color,
+            selected_color,
+            border_color,
+            text_color,
+            button_shapes,
+            text,
+            val,
+            store_val,
+        }
+    }
+}
+
+impl<T: Clone + PartialEq> PistonComponent for ButtonStoreVal<T> {
+    fn draw(&self, c: &Context, g: &mut WgpuGraphics<'_>, _: &Event, ctx: &mut CtxValues) {
+        let rect = math::margin_rectangle(self.button_shapes, 1.0);
+        let color = match self.val == *(self.store_val)(ctx) {
+            true => self.selected_color,
+            false => match self._cursor_in(ctx) {
+                false => self.normal_color,
+                true => self.hover_color,
+            },
+        };
+        rectangle(color, rect, c.transform, g);
+        Rectangle::new_border(self.border_color, 2.0).draw(rect, &c.draw_state, c.transform, g);
+        let transform = c.transform.trans(
+            self.button_shapes[0],
+            self.button_shapes[1] + 32. + (self.button_shapes[3] - 40.) / 2.,
+        );
+        text::Text::new_color(self.text_color, 32)
+            .draw(&self.text, &mut ctx.glyphs, &c.draw_state, transform, g)
+            .unwrap();
+    }
+
+    fn handle_event<'b>(&mut self, e: &Event, ctx: &'b mut CtxValues) {
+        if let Some(button) = e.release_args() {
+            if button == Button::Mouse(MouseButton::Left) {
+                match self._cursor_in(ctx) {
+                    false => {}
+                    true => *(self.store_val)(ctx) = self.val.clone(),
+                }
+            }
+        }
+    }
+}

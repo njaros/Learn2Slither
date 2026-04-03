@@ -21,6 +21,7 @@ fn main() -> Void {
             .unwrap(),
         ctx: Ctx::Lobby,
         mouse_pressed: false,
+        lshift_pressed: false,
         last_mouse_pos: None,
         exit: false,
         playground: None,
@@ -53,10 +54,16 @@ fn main() -> Void {
             if button == Button::Mouse(MouseButton::Left) {
                 ctx_values.mouse_pressed = true;
             }
+            if button == Button::Keyboard(Key::LShift) {
+                ctx_values.lshift_pressed = true;
+            }
         }
         if let Some(button) = e.release_args() {
             if button == Button::Mouse(MouseButton::Left) {
                 ctx_values.mouse_pressed = false;
+            }
+            if button == Button::Keyboard(Key::LShift) {
+                ctx_values.lshift_pressed = false;
             }
         }
     }
