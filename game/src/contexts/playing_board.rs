@@ -16,17 +16,7 @@ use wgpu_graphics::{Texture, TextureSettings};
 
 use piston_ctx::{Ctx, CtxValues};
 
-fn tile_to_color(tile: &Tile) -> [f32; 4] {
-    match tile {
-        Tile::Body => color::PURPLE,
-        Tile::Boom => color::BLACK,
-        Tile::Empty => color::WHITE,
-        Tile::Green => color::GREEN,
-        Tile::Head => color::OLIVE,
-        Tile::Red => color::RED,
-        Tile::Wall => color::hex("320000"),
-    }
-}
+use crate::contexts::board_helpers::Board;
 
 fn build_playground(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
     let mut back_button = MyButton::new(
@@ -136,78 +126,17 @@ fn play(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
         },
     );
 
+    
     window.draw_2d(e, |c, g, _| {
         clear([0.8, 0.8, 0.8, 1.0], g);
+    
+        let playground = ctx.playground.as_ref().unwrap();
+        let alive = playground.state == State::Alive;
+        let score = playground.get_score();
+    
+        let board = Board::new(playground, alive);
 
-        let state = ctx.playground.as_ref().unwrap().state;
-        let start_grid_x = 11.;
-        let start_grid_y = 10.;
-        let max_size = std::cmp::max(ctx.selected_width, ctx.selected_height);
-        let spacing = 100. / max_size as f64;
-        let rect_size = 480. / max_size as f64;
-        let mut grid = Vec::<Vec<Rectangle>>::new();
-        let score = ctx.playground.as_ref().unwrap().get_score();
-
-        if state == State::Alive {
-            let view = ctx.playground.as_ref().unwrap().snake_view();
-            let unknown_left = view[2].len();
-            let unknown_right = view[3].len();
-
-            view[0].iter().rev().for_each(|tile| {
-                let mut row = Vec::<Rectangle>::new();
-                (0..unknown_left).for_each(|_| row.push(Rectangle::new(color::GRAY)));
-                row.push(Rectangle::new(tile_to_color(tile)));
-                (0..unknown_right).for_each(|_| row.push(Rectangle::new(color::GRAY)));
-                grid.push(row);
-            });
-            let mut row = Vec::<Rectangle>::new();
-            view[2]
-                .iter()
-                .rev()
-                .for_each(|tile| row.push(Rectangle::new(tile_to_color(tile))));
-            match state {
-                State::Dead => match score {
-                    0 => row.push(Rectangle::new(tile_to_color(&Tile::Empty))),
-                    _ => row.push(Rectangle::new(tile_to_color(&Tile::Boom))),
-                },
-                _ => row.push(Rectangle::new(tile_to_color(&Tile::Head))),
-            };
-            view[3]
-                .iter()
-                .for_each(|tile| row.push(Rectangle::new(tile_to_color(tile))));
-            grid.push(row);
-            view[1].iter().for_each(|tile| {
-                let mut row = Vec::<Rectangle>::new();
-                (0..unknown_left).for_each(|_| row.push(Rectangle::new(color::GRAY)));
-                row.push(Rectangle::new(tile_to_color(tile)));
-                (0..unknown_right).for_each(|_| row.push(Rectangle::new(color::GRAY)));
-                grid.push(row);
-            });
-        } else {
-            let view = ctx.playground.as_ref().unwrap().get_grid();
-            view.iter().for_each(|row| {
-                let mut rect_row = Vec::<Rectangle>::new();
-                row.iter()
-                    .for_each(|tile| rect_row.push(Rectangle::new(tile_to_color(tile))));
-                grid.push(rect_row);
-            });
-        }
-
-        grid.iter().enumerate().for_each(|(y, row)| {
-            row.iter().enumerate().for_each(|(x, rect)| {
-                rect.draw(
-                    [
-                        start_grid_x + (rect_size + spacing) * x as f64,
-                        start_grid_y + (rect_size + spacing) * y as f64,
-                        rect_size,
-                        rect_size,
-                    ],
-                    &c.draw_state,
-                    c.transform,
-                    g,
-                );
-            });
-        });
+        board.draw(&c, g);
 
         Rectangle::new(color::CYAN).draw([750., 3., 270., 763.], &c.draw_state, c.transform, g);
 
@@ -306,8 +235,6 @@ fn play(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
         back_button.draw(&c, g, e, ctx);
     });
 
-    back_button.handle_event(e, ctx);
-
     if let Some(button) = e.press_args() {
         if button == Button::Keyboard(Key::Right) || button == Button::Keyboard(Key::D) {
             ctx.playground.as_mut().unwrap().next(Dir::Right);
@@ -319,6 +246,9 @@ fn play(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
             ctx.playground.as_mut().unwrap().next(Dir::Left);
         }
     }
+
+    back_button.handle_event(e, ctx);
+
 }
 
 pub fn playing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {

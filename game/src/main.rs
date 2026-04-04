@@ -5,7 +5,7 @@ use graphics::*;
 use piston_ctx::{Ctx, CtxValues, TrainingParams};
 use piston_window::*;
 use playground::PlayGround;
-use std::path::Path;
+use std::{path::Path, time::Instant};
 use wgpu_graphics::{Texture, TextureContext, TextureSettings};
 
 fn main() -> Void {
@@ -24,6 +24,7 @@ fn main() -> Void {
         lshift_pressed: false,
         last_mouse_pos: None,
         exit: false,
+        last_training_frame: Instant::now(),
         playground: None,
         selected_height: 10,
         selected_width: 10,

@@ -100,8 +100,8 @@ impl Coord {
 }
 
 pub struct PlayGround {
-    height: usize,
-    width: usize,
+    pub height: usize,
+    pub width: usize,
     grid: Vec<Vec<Tile>>,
     // Empties is used as a pool of coordinates for all random picks.
     empties: HashSet<Coord>,

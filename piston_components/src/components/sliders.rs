@@ -176,7 +176,7 @@ impl PistonComponent for SliderVertical {
             + (self.current as f64 - self.min as f64) / (self.max as f64 - self.min as f64)
                 * (self.shapes[3] - self.shapes[2] / 2.);
         let cur_x = self.shapes[0];
-        let cur_size = self.shapes[3];
+        let cur_size = self.shapes[2];
         Rectangle::new(color::GRAY).draw(self.visual_shapes, &c.draw_state, c.transform, g);
         Rectangle::new(color::BLACK).draw(
             [cur_x, cur_y, cur_size, cur_size],
@@ -197,4 +197,3 @@ impl PistonComponent for SliderVertical {
         }
     }
 }
-

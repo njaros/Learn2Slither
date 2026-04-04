@@ -9,6 +9,6 @@ pub mod switch;
 pub mod text_area;
 
 pub trait PistonComponent {
-    fn draw(&self, c: &Context, g: &mut WgpuGraphics<'_>, e: &Event, ctx: &mut CtxValues);
+    fn draw(&self, c: &Context, g: &mut WgpuGraphics<'_>, e: &Event, ctx: &mut CtxValues<'_>);
     fn handle_event<'a>(&mut self, e: &Event, ctx: &'a mut CtxValues);
 }

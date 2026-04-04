@@ -10,11 +10,11 @@ use std::io::{BufReader, BufWriter, Read};
 pub type QTable = Vec<Vec<f64>>;
 
 #[derive(Serialize, Deserialize)]
-struct Model {
-    score: u32,
-    model: QTable,
-    ets_name: String,
-    name: String,
+pub struct Model {
+    pub score: u32,
+    pub model: QTable,
+    pub ets_name: String,
+    pub name: String,
 }
 
 pub struct Agent {
@@ -63,6 +63,23 @@ impl Agent {
             name: new_name.unwrap_or(&name).clone(),
             ets: ETSFactory::create(ets_name)?,
             q_table,
+            best_models: vec![],
+            learning_rate: 0.1,
+            max_discount_factor: 0.9,
+            discount_factor: 0.9,
+            exploration_rate: 0.,
+            seed: make_rng(),
+            actions: [Dir::Up, Dir::Right, Dir::Down, Dir::Left],
+        })
+    }
+
+    pub fn from_model(new_name: &String, model: &Model) -> Res<Self> {
+        let q_table = &model.model;
+        let ets_name = &model.ets_name;
+        Ok(Agent {
+            name: new_name.clone(),
+            ets: ETSFactory::create(ets_name.clone())?,
+            q_table: q_table.clone(),
             best_models: vec![],
             learning_rate: 0.1,
             max_discount_factor: 0.9,

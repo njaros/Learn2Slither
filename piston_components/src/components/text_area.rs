@@ -2,7 +2,9 @@ use std::ops::AddAssign;
 
 use piston::{Button, ButtonArgs, Key, PressEvent};
 use piston_ctx::CtxValues;
-use piston_window::graphics::{Rectangle, Text, Transformed, color, types::FontSize};
+use piston_window::graphics::{
+    CharacterCache, Rectangle, Text, Transformed, color, types::FontSize,
+};
 
 use crate::components::PistonComponent;
 
@@ -44,22 +46,25 @@ impl PistonComponent for TextArea {
             [
                 self.pos[0],
                 self.pos[1],
-                2./3. * self.font_size as f64 * (self.max_len + 2) as f64,
-                4./3. * (self.font_size as f64 + 0.5)
+                3. / 4. * self.font_size as f64 * (self.max_len + 2) as f64,
+                4. / 3. * (self.font_size as f64 + 0.5),
             ],
-            &c.draw_state, 
-            c.transform,
-            g
-        );
-        Text::new(self.font_size).draw(
-            &self.current,
-            &mut ctx.glyphs,
             &c.draw_state,
-            c.transform.trans(
-                self.pos[0] + 2./3. * self.font_size as f64,
-                self.pos[1] + self.font_size as f64
-            ),
-            g).unwrap();
+            c.transform,
+            g,
+        );
+        Text::new(self.font_size)
+            .draw(
+                &self.current,
+                &mut ctx.glyphs,
+                &c.draw_state,
+                c.transform.trans(
+                    self.pos[0] + 2. / 3. * self.font_size as f64,
+                    self.pos[1] + self.font_size as f64,
+                ),
+                g,
+            )
+            .unwrap();
     }
 
     fn handle_event<'a>(&mut self, e: &piston::Event, ctx: &'a mut CtxValues) {
@@ -68,13 +73,10 @@ impl PistonComponent for TextArea {
                 Button::Keyboard(key) => {
                     if key == Key::Backspace {
                         (self.store_val)(ctx).pop();
-                    }
-                    else if (self.store_val)(ctx).len() < self.max_len {
-                        if (key >= Key::A && key <= Key::Z)
-                        || (key >= Key::D0 && key <= Key::D9) {
+                    } else if (self.store_val)(ctx).len() < self.max_len {
+                        if (key >= Key::A && key <= Key::Z) || (key >= Key::D0 && key <= Key::D9) {
                             (self.store_val)(ctx).push(char::from_u32(key.into()).unwrap())
-                        }
-                        else if key == Key::Space {
+                        } else if key == Key::Space {
                             (self.store_val)(ctx).push('_')
                         }
                     }

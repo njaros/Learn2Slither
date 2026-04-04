@@ -909,7 +909,7 @@ dependencies = [
  "convenient_lib",
  "image",
  "interpretors",
- "models_handler",
+ "itertools",
  "piston",
  "piston_components",
  "piston_ctx",
@@ -917,6 +917,8 @@ dependencies = [
  "playground",
  "qlearning",
  "rand 0.10.0",
+ "serde",
+ "serde_json",
  "vecmath",
 ]
 
@@ -1471,13 +1473,6 @@ checksum = "1fa76a2c86f704bdb222d66965fb3d63269ce38518b83cb0575fca855ebb6316"
 dependencies = [
  "adler2",
  "simd-adler32",
-]
-
-[[package]]
-name = "models_handler"
-version = "0.1.0"
-dependencies = [
- "convenient_lib",
 ]
 
 [[package]]
@@ -2048,6 +2043,8 @@ dependencies = [
 name = "piston_ctx"
 version = "0.1.0"
 dependencies = [
+ "convenient_lib",
+ "interpretors",
  "piston",
  "piston_window",
  "playground",
