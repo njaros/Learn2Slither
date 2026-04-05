@@ -1,7 +1,7 @@
 mod contexts;
 use convenient_lib::Void;
 use piston_ctx::{Ctx, CtxValues, LeaderBoard, TestingParams, TrainingParams};
-use piston_window::*;
+use piston_window::{wgpu_graphics::Texture, *};
 use std::{path::Path, time::Instant};
 use wgpu_graphics::TextureSettings;
 
@@ -15,11 +15,17 @@ fn main() -> Void {
         .unwrap();
 
     let assets = Path::new("assets");
+    
     let mut ctx_values = CtxValues {
         glyphs: window
             .load_font(assets.join("FiraSans-Regular.ttf"), TextureSettings::new())
             .unwrap(),
         ctx: Ctx::Lobby,
+        logo: Texture::from_path(
+            &mut window.create_texture_context(),
+            assets.join("snake.jpg"),
+            &TextureSettings::new()
+        ).unwrap(),
         mouse_pressed: false,
         lshift_pressed: false,
         last_mouse_pos: None,

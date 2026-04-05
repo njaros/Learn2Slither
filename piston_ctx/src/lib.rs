@@ -2,6 +2,7 @@ use std::time::Instant;
 
 use convenient_lib::Res;
 use interpretors::reward::reward_interpretor::RewardInterpretor;
+use piston_window::G2dTexture;
 use piston_window::graphics::glyph_cache::rusttype::GlyphCache;
 use piston_window::wgpu_graphics::{Texture, TextureContext};
 use playground::{Dir, PlayGround};
@@ -126,6 +127,7 @@ pub struct CtxValues<'a> {
     pub glyphs: GlyphCache<'a, TextureContext, Texture>,
 
     // App navigation contexts
+    pub logo: G2dTexture,
     pub ctx: Ctx,
     pub mouse_pressed: bool,
     pub lshift_pressed: bool,

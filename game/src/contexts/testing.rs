@@ -320,12 +320,14 @@ fn testing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
             ctx.ctx = Ctx::Lobby;
             ctx.agent = None;
             ctx.playground = None;
+            ctx.selected_height = 10;
+            ctx.selected_width = 10;
             ctx.testing_params = TestingParams::new() // reset params
         },
     );
 
     let mut view_switch = NamedSwitch::new(
-        [720., 75.],
+        [720., 80.],
         150.,
         color::CYAN,
         "    View".into(),
@@ -343,7 +345,7 @@ fn testing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
     );
 
     let mut infinite_loop_switch = NamedSwitch::new(
-        [720., 215.],
+        [720., 210.],
         150.,
         color::CYAN,
         "  Infinite".into(),
@@ -353,7 +355,7 @@ fn testing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
 
     let mut next_step_button = MyButton::new(
         Style::GREEN,
-        [930., 150., 80., 50.],
+        [930., 145., 80., 50.],
         " Next".into(),
         |ctx| ctx.testing_params.next_step = true,
     );
@@ -575,6 +577,8 @@ fn testing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
             ctx.ctx = Ctx::Lobby;
             ctx.agent = None;
             ctx.playground = None;
+            ctx.selected_height = 10;
+            ctx.selected_width = 10;
             ctx.testing_params = TestingParams::new();
         }
     }

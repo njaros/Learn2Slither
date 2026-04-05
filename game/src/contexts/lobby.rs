@@ -43,6 +43,18 @@ pub fn lobby(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
     window.draw_2d(e, |c, g, _| {
         clear([0.8, 0.8, 0.8, 1.0], g);
 
+        image(&ctx.logo, c.transform.zoom(2.), g);
+
+        Text::new_color(color::OLIVE, 75).draw(
+            "LEARN", &mut ctx.glyphs, &c.draw_state,
+            c.transform.trans(400., 100.), g).unwrap();
+        Text::new_color(color::OLIVE, 75).draw(
+            "TO", &mut ctx.glyphs, &c.draw_state,
+            c.transform.trans(450., 200.), g).unwrap();
+        Text::new_color(color::OLIVE, 75).draw(
+            "SLITHER", &mut ctx.glyphs, &c.draw_state,
+            c.transform.trans(390., 300.), g).unwrap();
+
         test_button.draw(&c, g, &e, ctx);
         train_button.draw(&c, g, &e, ctx);
         play_button.draw(&c, g, &e, ctx);
