@@ -26,3 +26,6 @@ en.subject.pdf
 
 /target
 models/
+
+learn2slither.bin
+learn2slither.exe
