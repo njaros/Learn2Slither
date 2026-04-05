@@ -2,6 +2,11 @@
   "leaderboard": [
     {
       "ets_name": "jaja_v1",
+      "model_name": "release",
+      "score": 56
+    },
+    {
+      "ets_name": "jaja_v1",
       "model_name": "test3",
       "score": 55
     },
@@ -18,6 +23,11 @@
     {
       "ets_name": "jaja_v1",
       "model_name": "test3",
+      "score": 48
+    },
+    {
+      "ets_name": "jaja_v1",
+      "model_name": "release",
       "score": 48
     },
     {
@@ -39,16 +49,6 @@
       "ets_name": "jaja_v1",
       "model_name": "test3",
       "score": 45
-    },
-    {
-      "ets_name": "jaja_v1",
-      "model_name": "test3",
-      "score": 45
-    },
-    {
-      "ets_name": "jaja_v1",
-      "model_name": "test3",
-      "score": 44
     }
   ]
 }
