@@ -1,20 +1,10 @@
 use clap::{Command, arg, command, value_parser};
 use convenient_lib::Void;
-use interpretors::{reward::reward_interpretor::RewardInterpretor, state};
-use playground::{Dir, PlayGround};
-use qlearning::Agent;
-use rand::{make_rng, rngs::StdRng};
+use playground::PlayGround;
+use qlearning::{Agent, train_loop};
+use rand::make_rng;
 use std::thread::sleep;
 use std::time::Duration;
-
-fn dir_to_usize(dir: Dir) -> usize {
-    match dir {
-        Dir::Up => 0,
-        Dir::Right => 1,
-        Dir::Down => 2,
-        Dir::Left => 3,
-    }
-}
 
 fn main() -> Void {
     let matches = command!()
@@ -72,55 +62,9 @@ fn main() -> Void {
     Ok(())
 }
 
-fn _train(agent: &mut Agent) -> Void {
-    let mut reward_interpretor = RewardInterpretor::new();
-    let sleep_time = Duration::from_millis(10);
-    let mut best_score = 0u32;
-
-    (1..2500).for_each(|pouet| {
-        let mut score = 0u32;
-        let mut playground: PlayGround = PlayGround::new(10, 10, make_rng());
-        let env = &playground.snake_view();
-        reward_interpretor.init(env);
-        let mut state = agent.ets.env_to_state(env);
-        let mut dir = agent.play(state);
-        let mut env = playground.next(dir);
-        while playground.is_alive() {
-            // print!("{playground}");
-            let next_state = agent.ets.env_to_state(&env);
-            let reward = reward_interpretor.get_reward(&env);
-            agent.bellman(state, Some(next_state), dir_to_usize(dir), reward);
-            state = next_state;
-            // sleep(sleep_time);
-            dir = agent.play(state);
-            env = playground.next(dir);
-            // println!("try: {pouet}: score: {score}, best: {best_score}");
-        }
-        agent.bellman(
-            state,
-            None,
-            dir_to_usize(dir),
-            reward_interpretor.end_training_reward,
-        );
-        // print!("{playground}");
-        score = playground.get_score();
-        if score > best_score {
-            best_score = score;
-        }
-        println!("try: {pouet}: score: {score}, best: {best_score}");
-        agent.store_score(playground.get_score());
-        agent.reduce_exploration_by(0.00025);
-        agent.increase_discount_factor_by(0.0003);
-    });
-
-    agent.save()?;
-
-    Ok(())
-}
-
 fn train(name: String, ets_name: String) -> Void {
     let mut agent = Agent::new(ets_name, name)?;
-    _train(&mut agent)?;
+    train_loop(&mut agent, 2500, true)?;
 
     Ok(())
 }
@@ -135,7 +79,7 @@ fn test(
 ) -> Void {
     let mut agent = Agent::from(name, index, retrain)?;
     if retrain.is_some() {
-        _train(&mut agent)?;
+        train_loop(&mut agent, 2500, true)?;
     } else {
         let sleep_time = Duration::from_millis(sleep_time);
         let mut playground = PlayGround::new(height, width, make_rng());

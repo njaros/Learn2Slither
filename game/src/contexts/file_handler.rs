@@ -1,9 +1,30 @@
-use convenient_lib::Res;
+use convenient_lib::{Res, Void};
+use piston_ctx::LeaderBoard;
 use qlearning::Model;
+use serde_json::json;
 use std::fs;
 use std::fs::read_dir;
-use std::io::{BufReader, Read};
+use std::io::{BufReader, BufWriter, Read};
 use std::path::{Path, PathBuf};
+
+pub fn get_leaderboard(file_path: &str) -> Res<LeaderBoard> {
+    let file = fs::File::open(file_path)?;
+    let mut contents = String::new();
+    let mut buf_reader = BufReader::new(file);
+    buf_reader.read_to_string(&mut contents)?;
+
+    Ok(serde_json::from_str::<LeaderBoard>(&contents)?)
+}
+
+pub fn save_leaderboard(file_path: &str, leaderboard: &LeaderBoard) -> Void {
+    let file = fs::File::create(file_path)?;
+    let mut writer = BufWriter::new(file);
+    let v = json!(
+        leaderboard
+    );
+    serde_json::to_writer_pretty(&mut writer, &v)?;
+    Ok(())
+}
 
 pub fn get_model_names(base_path: &str) -> Res<Vec<String>> {
     Ok(read_dir(Path::new(base_path))?

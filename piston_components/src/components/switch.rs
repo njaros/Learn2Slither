@@ -99,8 +99,8 @@ pub struct NamedSwitch {
 
 impl NamedSwitch {
     fn _cursor_in(&self, ctx: &CtxValues) -> bool {
-        let l_border = self.shapes[0];
-        let r_border = l_border + self.shapes[2];
+        let l_border = self.shapes[0] + self.shapes[2] - 100.;
+        let r_border = l_border + 100.;
         let u_border = self.shapes[1];
         let d_border = u_border + self.shapes[3];
         match ctx.last_mouse_pos {
@@ -113,13 +113,14 @@ impl NamedSwitch {
 
     pub fn new(
         pos: [f64; 2],
+        text_len: f64,
         background_color: [f32; 4],
         name: String,
         current: bool,
         store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut bool,
     ) -> Self {
         Self {
-            shapes: [pos[0], pos[1], 400., 50.],
+            shapes: [pos[0], pos[1], text_len + 100., 50.],
             background_color,
             name,
             current,
@@ -136,7 +137,7 @@ impl PistonComponent for NamedSwitch {
         _: &piston::Event,
         ctx: &mut CtxValues,
     ) {
-        let switch_shapes = [self.shapes[0] + 300., self.shapes[1], 100., self.shapes[3]];
+        let switch_shapes = [self.shapes[0] + self.shapes[2] - 100., self.shapes[1], 100., self.shapes[3]];
         let background = Rectangle::new(self.background_color);
         let rect_on = Rectangle::new(match self.current {
             true => color::GREEN,
@@ -206,8 +207,8 @@ pub struct NamedSwitchAction<U, V> {
 
 impl<U, V> NamedSwitchAction<U, V> {
     fn _cursor_in(&self, ctx: &CtxValues) -> bool {
-        let l_border = self.shapes[0];
-        let r_border = l_border + self.shapes[2];
+        let l_border = self.shapes[0] + self.shapes[2] - 100.;
+        let r_border = l_border + 100.;
         let u_border = self.shapes[1];
         let d_border = u_border + self.shapes[3];
         match ctx.last_mouse_pos {
@@ -220,6 +221,7 @@ impl<U, V> NamedSwitchAction<U, V> {
 
     pub fn new(
         pos: [f64; 2],
+        text_len: f64,
         background_color: [f32; 4],
         name: String,
         current: bool,
@@ -230,7 +232,7 @@ impl<U, V> NamedSwitchAction<U, V> {
         what_to_store_for_off: fn(&mut CtxValues) -> V,
     ) -> Self {
         Self {
-            shapes: [pos[0], pos[1], 400., 50.],
+            shapes: [pos[0], pos[1], text_len + 100., 50.],
             background_color,
             name,
             current,
@@ -251,7 +253,7 @@ impl<U, V> PistonComponent for NamedSwitchAction<U, V> {
         _: &piston::Event,
         ctx: &mut CtxValues,
     ) {
-        let switch_shapes = [self.shapes[0] + 300., self.shapes[1], 100., self.shapes[3]];
+        let switch_shapes = [self.shapes[0] + self.shapes[2] - 100., self.shapes[1], 100., self.shapes[3]];
         let background = Rectangle::new(self.background_color);
         let rect_on = Rectangle::new(match self.current {
             true => color::GREEN,

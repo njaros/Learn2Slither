@@ -9,13 +9,12 @@ use piston_components::components::{
     switch::{NamedSwitch, NamedSwitchAction},
     text_area::TextArea,
 };
-use piston_ctx::{Ctx, CtxValues};
+use piston_ctx::{Ctx, CtxValues, TrainingParams};
 use piston_window::{
-    graphics::{Rectangle, Text},
-    *,
+    graphics::{Rectangle, Text}, *
 };
 use playground::{Dir, PlayGround};
-use qlearning::{Agent, Model};
+use qlearning::{Agent, Model, train_loop};
 use rand::make_rng;
 use std::{path::Path, time::{Duration, Instant}};
 
@@ -30,7 +29,7 @@ fn dir_to_usize(dir: Dir) -> usize {
     }
 }
 
-pub fn training_form<'a>(window: &mut PistonWindow, e: &Event, ctx: &'a mut CtxValues) {
+fn training_form<'a>(window: &mut PistonWindow, e: &Event, ctx: &'a mut CtxValues) {
     let mut back_button = MyButton::new(
         Style::RED,
         [772., 650., 200., 75.],
@@ -197,6 +196,7 @@ pub fn training_form<'a>(window: &mut PistonWindow, e: &Event, ctx: &'a mut CtxV
 
     let mut from_switch = NamedSwitchAction::new(
         [600., 50.],
+        300.,
         color::MAGENTA,
         "        from existing".into(),
         ctx.training_params.from_bool,
@@ -209,22 +209,16 @@ pub fn training_form<'a>(window: &mut PistonWindow, e: &Event, ctx: &'a mut CtxV
 
     let mut interactive_switch = NamedSwitch::new(
         [50., 50.],
+        300.,
         color::MAGENTA,
         " interactive".into(),
         ctx.training_params.interactive,
         |ctx| &mut ctx.training_params.interactive,
     );
 
-    let mut step_to_step_switch = NamedSwitch::new(
-        [50., 125.],
-        color::CYAN,
-        " step_to_step".into(),
-        ctx.training_params.step_by_step,
-        |ctx| &mut ctx.training_params.step_by_step,
-    );
-
     let mut pause_switch = NamedSwitch::new(
         [50., 200.],
+        300.,
         color::CYAN,
         " pause".into(),
         ctx.training_params.pause,
@@ -233,6 +227,7 @@ pub fn training_form<'a>(window: &mut PistonWindow, e: &Event, ctx: &'a mut CtxV
 
     let mut snake_view_switch = NamedSwitch::new(
         [50., 270.],
+        300.,
         color::CYAN,
         " snake view".into(),
         ctx.training_params.snake_view,
@@ -378,7 +373,6 @@ pub fn training_form<'a>(window: &mut PistonWindow, e: &Event, ctx: &'a mut CtxV
         // Interactive buttons.
         interactive_switch.draw(&c, g, e, ctx);
         if ctx.training_params.interactive {
-            step_to_step_switch.draw(&c, g, e, ctx);
             snake_view_switch.draw(&c, g, e, ctx);
             Rectangle::new(color::CYAN).draw([50., 340., 300., 50.], &c.draw_state, c.transform, g);
             Text::new(32)
@@ -456,7 +450,6 @@ pub fn training_form<'a>(window: &mut PistonWindow, e: &Event, ctx: &'a mut CtxV
 
     interactive_switch.handle_event(e, ctx);
     if ctx.training_params.interactive {
-        step_to_step_switch.handle_event(e, ctx);
         pause_switch.handle_event(e, ctx);
         snake_view_switch.handle_event(e, ctx);
         speed_slider.handle_event(e, ctx);
@@ -470,9 +463,15 @@ pub fn training_form<'a>(window: &mut PistonWindow, e: &Event, ctx: &'a mut CtxV
             train_button.handle_event(e, ctx);
         }
     back_button.handle_event(e, ctx);
+
+    if let Some(button) = e.press_args() {
+        if button == Button::Keyboard(Key::Escape) {
+            ctx.ctx = Ctx::Lobby;
+        }
+    }
 }
 
-pub fn interactive_train_view(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
+fn training_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
     let mut back_button = MyButton::new(
         Style::RED,
         [772., 650., 200., 75.],
@@ -481,26 +480,188 @@ pub fn interactive_train_view(window: &mut PistonWindow, e: &Event, ctx: &mut Ct
             ctx.ctx = Ctx::Lobby;
             ctx.agent = None;
             ctx.playground = None;
-            ctx.selected_height = 10;
-            ctx.selected_width = 10;
+            ctx.training_params = TrainingParams::new() // reset params
         },
+    );
+
+    let mut view_switch = NamedSwitch::new(
+        [720., 75.],
+        150.,
+        color::CYAN,
+        "    View".into(),
+        ctx.training_params.snake_view,
+        |ctx| &mut ctx.training_params.snake_view,
+    );
+
+    let mut pause_switch = NamedSwitch::new(
+        [720., 150.],
+    100.,
+        color::CYAN,
+        " Pause".into(),
+        ctx.training_params.pause,
+        |ctx| &mut ctx.training_params.pause,
+    );
+
+    let mut next_step_button = MyButton::new(
+        Style::GREEN,
+        [930., 150., 80., 50.],
+        " Next".into(),
+        |ctx| ctx.training_params.next_step = true
+    );
+
+    let mut save_current_button = MyButton::new(
+        Style::BLUE,
+        [710., 215., 150., 50.],
+        " Snapshot".into(),
+        |ctx| {
+            ctx.agent.as_ref().unwrap().snapshot(
+                ctx.playground.as_ref().unwrap().get_score()
+            ).unwrap();
+            ctx.training_params.just_snapshoted = true;
+        }
+    );
+
+    let mut save_bests_button = MyButton::new(
+        Style::BLUE,
+        [865., 215., 150., 50.],
+        "Save bests".into(),
+        |ctx| {
+            ctx.agent.as_ref().unwrap().save().unwrap();
+            ctx.training_params.just_save_all = true;
+        }
+    );
+
+    let mut speed_slider = Slider::new(
+        0,
+        1000,
+        ctx.training_params.speed_time,
+        [820., 275., 130., 40.],
+        |ctx| &mut ctx.training_params.speed_time,
     );
 
     window.draw_2d(e, |c, g, _| {
         clear([0.8, 0.8, 0.8, 1.0], g);
 
-        let board = Board::new(ctx.playground.as_ref().unwrap(), ctx.training_params.snake_view);
+        let board = Board::new(&ctx.playground.as_ref().unwrap(), ctx.training_params.snake_view);
+        let bests_scores = &ctx.agent.as_ref().unwrap().get_best_score();
         board.draw(&c, g);
 
+        pause_switch.draw(&c, g, e, ctx);
+
+        Rectangle::new(color::BLACK).draw([720., 10., 300., 60.], &c.draw_state, c.transform, g);
+        Rectangle::new_border(color::CYAN, 1.).draw([720., 10., 300., 60.], &c.draw_state, c.transform, g);
+
+        Text::new_color(color::WHITE, 28).draw(
+            &format!("On training: {}", ctx.training_params.name),
+            &mut ctx.glyphs,
+            &c.draw_state,
+            c.transform.trans(740., 45.),
+            g
+        ).unwrap();
+
+        if ctx.training_params.pause && !ctx.training_params.train_finished {
+            next_step_button.draw(&c, g, e, ctx);
+        }
+        if ctx.training_params.pause || ctx.training_params.train_finished {
+            if !ctx.training_params.just_save_all {
+                save_bests_button.draw(&c, g, e, ctx);
+            } else {
+                let shapes = save_bests_button.button_shapes;
+                Rectangle::new(color::GREEN).draw(
+                    shapes, &c.draw_state, c.transform, g);
+                Text::new(22).draw(
+                    "    Bests saved",
+                    &mut ctx.glyphs,
+                    &c.draw_state,
+                    c.transform.trans(
+                        shapes[0],
+                        shapes[1] + 35.
+                    ),
+                    g
+                ).unwrap();
+            }
+            if !ctx.training_params.just_snapshoted {
+                save_current_button.draw(&c, g, e, ctx);
+            } else {
+                let shapes = save_current_button.button_shapes;
+                Rectangle::new(color::GREEN).draw(
+                    shapes, &c.draw_state, c.transform, g);
+                Text::new(22).draw(
+                    " Snapshot done",
+                    &mut ctx.glyphs,
+                    &c.draw_state,
+                    c.transform.trans(
+                        shapes[0],
+                        shapes[1] + 35.
+                    ),
+                    g
+                ).unwrap();
+            }
+
+        }
+
+        view_switch.draw(&c, g, e, ctx);
+        Text::new(28).draw(
+            " Speed",
+            &mut ctx.glyphs,
+            &c.draw_state,
+            c.transform.trans(720., 305.),
+            g).unwrap();
+        speed_slider.draw(&c, g, e, ctx);
+        Text::new(28).draw(
+            &ctx.training_params.speed_time.to_string(),
+            &mut ctx.glyphs,
+            &c.draw_state,
+            c.transform.trans(960., 305.),
+            g).unwrap();
         back_button.draw(&c, g, e, ctx);
+        Rectangle::new(color::BLACK).draw([710., 330., 300., 300.], &c.draw_state, c.transform, g);
+        Rectangle::new_border(color::WHITE, 0.5).draw([714., 334., 293., 35.], &c.draw_state, c.transform, g);
+        Text::new_color(color::WHITE, 16).draw(
+            &format!("round {} of {}", ctx.training_params.current_round, ctx.training_params.rounds),
+            &mut ctx.glyphs,
+            &c.draw_state,
+            c.transform.trans(722., 356.),
+            g).unwrap();
+        Text::new_color(color::WHITE, 16).draw(
+            &format!("current score: {}", ctx.playground.as_ref().unwrap().get_score()),
+            &mut ctx.glyphs,
+            &c.draw_state,
+            c.transform.trans(860., 356.),
+            g).unwrap();
+
+        Rectangle::new_border(color::WHITE, 0.5).draw([714., 373., 293., 253.], &c.draw_state, c.transform, g);
+        Text::new_color(color::WHITE, 16).draw(
+            &"Best scores reached: ",
+            &mut ctx.glyphs,
+            &c.draw_state,
+            c.transform.trans(725., 395.),
+            g).unwrap();
+        
+        bests_scores
+            .iter()
+            .enumerate()
+            .for_each(|(idx, score)| {
+                Text::new_color(color::WHITE, 16).draw(
+                &format!("{}: score: {score}", idx + 1),
+                &mut ctx.glyphs,
+                &c.draw_state,
+                c.transform.trans(740., 425. + (20. * idx as f64)),
+                g).unwrap();
+            });
     });
 
     let playground = ctx.playground.as_mut().unwrap();
     let agent = ctx.agent.as_mut().unwrap();
 
     if !ctx.training_params.train_finished {
-        if ctx.last_training_frame.elapsed() > Duration::from_millis(ctx.training_params.speed_time as u64) {
+        if match ctx.training_params.pause {
+            false => ctx.last_training_frame.elapsed() > Duration::from_millis(ctx.training_params.speed_time as u64),
+            true => ctx.training_params.next_step
+        } {
+            ctx.training_params.just_snapshoted = false;
             ctx.last_training_frame = Instant::now();
+            ctx.training_params.next_step = false;
             if playground.is_alive() {
                 let env = &playground.snake_view();
                 let current_state = agent.ets.env_to_state(env);
@@ -526,7 +687,9 @@ pub fn interactive_train_view(window: &mut PistonWindow, e: &Event, ctx: &mut Ct
                     None,
                     dir_to_usize(ctx.training_params.last_dir),
                     ctx.training_params.rewarder.end_training_reward);
-                agent.store_score(playground.get_score());
+                if agent.store_score(playground.get_score()) {
+                    ctx.training_params.just_save_all = false;
+                }
                 ctx.training_params.current_round += 1;
                 if ctx.training_params.current_round == ctx.training_params.rounds {
                     ctx.training_params.train_finished = true;
@@ -542,15 +705,111 @@ pub fn interactive_train_view(window: &mut PistonWindow, e: &Event, ctx: &mut Ct
         }
     }
 
+    pause_switch.handle_event(e, ctx);
+    if ctx.training_params.pause && !ctx.training_params.train_finished {
+        next_step_button.handle_event(e, ctx);
+    }
+    if ctx.training_params.pause || ctx.training_params.train_finished {
+        if !ctx.training_params.just_save_all {
+            save_bests_button.handle_event(e, ctx);
+        }
+        if !ctx.training_params.just_snapshoted {
+            save_current_button.handle_event(e, ctx);
+        }
+    }
+    speed_slider.handle_event(e, ctx);
+    back_button.handle_event(e, ctx);
+    view_switch.handle_event(e, ctx);
+
+    if let Some(button) = e.press_args() {
+        if button == Button::Keyboard(Key::Space) {
+            ctx.training_params.pause = !ctx.training_params.pause;
+        }
+        else if button == Button::Keyboard(Key::Down) || button == Button::Keyboard(Key::Right) {
+            ctx.training_params.speed_time = std::cmp::min(1000, 
+                match ctx.training_params.speed_time {
+                    0 => 1,
+                    _ => ctx.training_params.speed_time * 2
+                }
+            )
+        }
+        else if button == Button::Keyboard(Key::Up) || button == Button::Keyboard(Key::Left) {
+            ctx.training_params.speed_time = match ctx.training_params.speed_time {
+                1 => 0,
+                _ => ctx.training_params.speed_time / 2
+            }
+        }
+        else if button == Button::Keyboard(Key::V) {
+            ctx.training_params.snake_view = !ctx.training_params.snake_view;
+        }
+        else if ctx.training_params.pause
+        && (button == Button::Keyboard(Key::N)
+        || button == Button::Keyboard(Key::Return)
+        || button == Button::Keyboard(Key::Return2)) {
+            ctx.training_params.next_step = true;
+        }
+        else if button == Button::Keyboard(Key::Escape) {
+            ctx.ctx = Ctx::Lobby;
+            ctx.agent = None;
+            ctx.playground = None;
+            ctx.training_params = TrainingParams::new();
+        }
+    }
+
+}
+
+fn train_view(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
+
+    let mut back_button = MyButton::new(
+        Style::RED,
+        [772., 650., 200., 75.],
+        "       HOME".into(),
+        |ctx| {
+            ctx.ctx = Ctx::Lobby;
+            ctx.agent = None;
+            ctx.playground = None;
+            ctx.training_params = TrainingParams::new() // reset params
+        },
+    );
+
+    if !ctx.training_params.train_finished {
+        train_loop(&mut ctx.agent.as_mut().unwrap(), ctx.training_params.rounds, false).unwrap();
+    }
+    ctx.training_params.train_finished = true;
+
+    window.draw_2d(e, |c, g, _| {
+        clear([0.8, 0.8, 0.8, 1.0], g);
+        
+        Text::new(30).draw(
+            &format!("Model {}'s training is finished, 10 bests models from it are saved", ctx.training_params.name),
+            &mut ctx.glyphs,
+            &c.draw_state,
+            c.transform.trans(50., 50.),
+            g).unwrap();
+        Text::new(30).draw(
+            "and ready to be tested",
+            &mut ctx.glyphs,
+            &c.draw_state,
+            c.transform.trans(50., 90.),
+            g).unwrap();
+
+        back_button.draw(&c, g, e, ctx);
+    });
+
     back_button.handle_event(e, ctx);
 
+    if let Some(button) = e.press_args() {
+        if button == Button::Keyboard(Key::Escape) {
+            ctx.ctx = Ctx::Lobby;
+            ctx.agent = None;
+            ctx.playground = None;
+            ctx.training_params = TrainingParams::new();
+        }
+    }
+
 }
 
-pub fn train_view(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
-
-}
-
-pub fn training_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
+pub fn training_route(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
     match &ctx.agent {
         None => training_form(window, e, ctx),
         Some(_agent) => {
@@ -563,7 +822,7 @@ pub fn training_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues)
                 _ => {}
             }
             match ctx.training_params.interactive {
-                true => interactive_train_view(window, e, ctx),
+                true => training_board(window, e, ctx),
                 false => train_view(window, e, ctx)
             }
         }

@@ -2,15 +2,18 @@ mod contexts;
 use convenient_lib::Void;
 use glyph_cache::rusttype::GlyphCache;
 use graphics::*;
-use piston_ctx::{Ctx, CtxValues, TrainingParams};
+use piston_ctx::{Ctx, CtxValues, LeaderBoard, TestingParams, TrainingParams};
 use piston_window::*;
 use playground::PlayGround;
 use std::{path::Path, time::Instant};
 use wgpu_graphics::{Texture, TextureContext, TextureSettings};
 
+use crate::contexts::file_handler::{get_leaderboard, save_leaderboard};
+
+const LEADERBOARD_PATH: &str = "leaderboard.json";
+
 fn main() -> Void {
     let mut window: PistonWindow = WindowSettings::new("Learn2Slither", (1024, 768))
-        .exit_on_esc(true)
         .build()
         .unwrap();
 
@@ -29,8 +32,17 @@ fn main() -> Void {
         selected_height: 10,
         selected_width: 10,
         training_params: TrainingParams::new(),
+        testing_params: TestingParams::new(),
+        leaderboard: match get_leaderboard(LEADERBOARD_PATH) {
+            Err(err) => {
+                println!("{err}");
+                    LeaderBoard {
+                    leaderboard: vec![]
+                }
+            },
+            Ok(l) => l.clone()
+        },
         agent: None,
-        model: None,
     };
 
     window.set_lazy(true);
@@ -40,11 +52,11 @@ fn main() -> Void {
     {
         match ctx_values.ctx {
             Ctx::Lobby => contexts::lobby::lobby(&mut window, &e, &mut ctx_values),
-            Ctx::Test => contexts::testing_board::testing_board(&mut window, &e, &mut ctx_values),
+            Ctx::Test => contexts::testing::testing_route(&mut window, &e, &mut ctx_values),
             Ctx::Train => {
-                contexts::training_board::training_board(&mut window, &e, &mut ctx_values)
+                contexts::training::training_route(&mut window, &e, &mut ctx_values)
             }
-            Ctx::Play => contexts::playing_board::playing_board(&mut window, &e, &mut ctx_values),
+            Ctx::Play => contexts::playing::playing_route(&mut window, &e, &mut ctx_values),
         }
 
         // Saving mouse's params.
@@ -68,5 +80,8 @@ fn main() -> Void {
             }
         }
     }
+
+    save_leaderboard(LEADERBOARD_PATH, &ctx_values.leaderboard)?;
+
     Ok(())
 }

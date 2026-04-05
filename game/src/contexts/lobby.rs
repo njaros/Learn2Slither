@@ -4,12 +4,19 @@ use piston_components::components::buttons::{MyButton, Style};
 use piston_ctx::{Ctx, CtxValues};
 use piston_window::*;
 
+use crate::contexts::file_handler::get_model_names;
+
+const MODEL_PATH: &str = "models";
+
 pub fn lobby(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
     let mut test_button = MyButton::new(
         Style::BLUE,
         [52., 650., 200., 75.],
         "     TESTING".into(),
-        |ctx| ctx.ctx = Ctx::Test,
+        |ctx| {
+            ctx.ctx = Ctx::Test;
+            ctx.testing_params.model_names = get_model_names(MODEL_PATH);
+        }
     );
 
     let mut train_button = MyButton::new(
@@ -46,4 +53,10 @@ pub fn lobby(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
     train_button.handle_event(e, ctx);
     play_button.handle_event(e, ctx);
     exit_button.handle_event(e, ctx);
+
+    if let Some(button) = e.press_args() {
+        if button == Button::Keyboard(Key::Escape) {
+            ctx.exit = true;
+        }
+    }
 }

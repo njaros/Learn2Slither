@@ -4,15 +4,9 @@ use piston_components::components::{
     buttons::{MyButton, Style},
     sliders::Slider,
 };
-use piston_window::{
-    graphics::Context,
-    wgpu::{Color, Device, hal::Rect},
-    wgpu_graphics::WgpuGraphics,
-};
 use piston_window::{graphics::Text, *};
-use playground::{Dir, PlayGround, State, Tile};
+use playground::{Dir, PlayGround, State};
 use rand::make_rng;
-use wgpu_graphics::{Texture, TextureSettings};
 
 use piston_ctx::{Ctx, CtxValues};
 
@@ -111,9 +105,17 @@ fn build_playground(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
     slider_height.handle_event(e, ctx);
     create_button.handle_event(e, ctx);
     back_button.handle_event(e, ctx);
+
+    if let Some(button) = e.press_args() {
+        if button == Button::Keyboard(Key::Escape) {
+            ctx.ctx = Ctx::Lobby;
+            ctx.selected_width = 10;
+            ctx.selected_height = 10;
+        }
+    }
 }
 
-fn play(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
+fn playing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
     let mut back_button = MyButton::new(
         Style::RED,
         [772., 650., 200., 75.],
@@ -244,6 +246,9 @@ fn play(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
             ctx.playground.as_mut().unwrap().next(Dir::Up);
         } else if button == Button::Keyboard(Key::Left) || button == Button::Keyboard(Key::A) {
             ctx.playground.as_mut().unwrap().next(Dir::Left);
+        } else if button == Button::Keyboard(Key::Escape) {
+            ctx.ctx = Ctx::Lobby;
+            ctx.playground = None;
         }
     }
 
@@ -251,9 +256,9 @@ fn play(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
 
 }
 
-pub fn playing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
+pub fn playing_route(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
     match ctx.playground {
         None => build_playground(window, e, ctx),
-        _ => play(window, e, ctx),
+        _ => playing_board(window, e, ctx),
     }
 }

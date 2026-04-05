@@ -2049,6 +2049,7 @@ dependencies = [
  "piston_window",
  "playground",
  "qlearning",
+ "serde",
 ]
 
 [[package]]

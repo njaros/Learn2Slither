@@ -1,9 +1,7 @@
-use std::ops::AddAssign;
-
-use piston::{Button, ButtonArgs, Key, PressEvent};
+use piston::{Button, Key, PressEvent};
 use piston_ctx::CtxValues;
 use piston_window::graphics::{
-    CharacterCache, Rectangle, Text, Transformed, color, types::FontSize,
+    Rectangle, Text, Transformed, color,
 };
 
 use crate::components::PistonComponent;
