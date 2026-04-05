@@ -22,12 +22,22 @@
     },
     {
       "ets_name": "jaja_v1",
+      "model_name": "no_name",
+      "score": 43
+    },
+    {
+      "ets_name": "jaja_v1",
       "model_name": "test3",
       "score": 41
     },
     {
       "ets_name": "jaja_v1",
       "model_name": "test3",
+      "score": 39
+    },
+    {
+      "ets_name": "jaja_v1",
+      "model_name": "no_name",
       "score": 39
     },
     {
@@ -39,16 +49,6 @@
       "ets_name": "jaja_v1",
       "model_name": "test3",
       "score": 31
-    },
-    {
-      "ets_name": "jaja_v1",
-      "model_name": "test3",
-      "score": 27
-    },
-    {
-      "ets_name": "jaja_v1",
-      "model_name": "pouet",
-      "score": 21
     }
   ]
 }
