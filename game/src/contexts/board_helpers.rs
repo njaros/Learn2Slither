@@ -1,7 +1,5 @@
-use piston::{Button, Key, PressEvent};
-use piston_ctx::CtxValues;
 use piston_window::graphics::{Rectangle, color};
-use playground::{Dir, PlayGround, State, Tile};
+use playground::{PlayGround, State, Tile};
 
 pub fn tile_to_color(tile: &Tile) -> [f32; 4] {
     match tile {
@@ -20,7 +18,7 @@ pub struct Board {
     start_grid_y: f64,
     spacing: f64,
     rect_size: f64,
-    grid: Vec<Vec<Rectangle>>
+    grid: Vec<Vec<Rectangle>>,
 }
 
 impl Board {
@@ -32,7 +30,7 @@ impl Board {
         let rect_size = 480. / max_size as f64;
         let state = engine.state;
         let mut grid = Vec::<Vec<Rectangle>>::new();
-        
+
         if snake_view {
             let view = &engine.snake_view();
             let unknown_left = view[2].len();
@@ -68,8 +66,7 @@ impl Board {
                 (0..unknown_right).for_each(|_| row.push(Rectangle::new(color::GRAY)));
                 grid.push(row);
             });
-        }
-        else {
+        } else {
             let view = &engine.get_grid();
             view.iter().for_each(|row| {
                 let mut rect_row = Vec::<Rectangle>::new();
@@ -84,11 +81,15 @@ impl Board {
             start_grid_y,
             spacing,
             rect_size,
-            grid
+            grid,
         }
     }
 
-    pub fn draw(&self, c: &piston_window::graphics::Context, g: &mut piston_window::wgpu_graphics::WgpuGraphics<'_>) {
+    pub fn draw(
+        &self,
+        c: &piston_window::graphics::Context,
+        g: &mut piston_window::wgpu_graphics::WgpuGraphics<'_>,
+    ) {
         self.grid.iter().enumerate().for_each(|(y, row)| {
             row.iter().enumerate().for_each(|(x, rect)| {
                 rect.draw(
@@ -105,5 +106,4 @@ impl Board {
             });
         });
     }
-
 }

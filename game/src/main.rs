@@ -1,12 +1,9 @@
 mod contexts;
 use convenient_lib::Void;
-use glyph_cache::rusttype::GlyphCache;
-use graphics::*;
 use piston_ctx::{Ctx, CtxValues, LeaderBoard, TestingParams, TrainingParams};
 use piston_window::*;
-use playground::PlayGround;
 use std::{path::Path, time::Instant};
-use wgpu_graphics::{Texture, TextureContext, TextureSettings};
+use wgpu_graphics::TextureSettings;
 
 use crate::contexts::file_handler::{get_leaderboard, save_leaderboard};
 
@@ -36,11 +33,11 @@ fn main() -> Void {
         leaderboard: match get_leaderboard(LEADERBOARD_PATH) {
             Err(err) => {
                 println!("{err}");
-                    LeaderBoard {
-                    leaderboard: vec![]
+                LeaderBoard {
+                    leaderboard: vec![],
                 }
-            },
-            Ok(l) => l.clone()
+            }
+            Ok(l) => l.clone(),
         },
         agent: None,
     };
@@ -53,9 +50,7 @@ fn main() -> Void {
         match ctx_values.ctx {
             Ctx::Lobby => contexts::lobby::lobby(&mut window, &e, &mut ctx_values),
             Ctx::Test => contexts::testing::testing_route(&mut window, &e, &mut ctx_values),
-            Ctx::Train => {
-                contexts::training::training_route(&mut window, &e, &mut ctx_values)
-            }
+            Ctx::Train => contexts::training::training_route(&mut window, &e, &mut ctx_values),
             Ctx::Play => contexts::playing::playing_route(&mut window, &e, &mut ctx_values),
         }
 
