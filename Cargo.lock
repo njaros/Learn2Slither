@@ -906,11 +906,19 @@ dependencies = [
 name = "game"
 version = "0.1.0"
 dependencies = [
+ "convenient_lib",
  "image",
+ "interpretors",
+ "itertools",
  "piston",
+ "piston_components",
+ "piston_ctx",
  "piston_window",
  "playground",
  "qlearning",
+ "rand 0.10.0",
+ "serde",
+ "serde_json",
  "vecmath",
 ]
 
@@ -2019,6 +2027,29 @@ dependencies = [
  "piston-texture",
  "piston2d-graphics",
  "wgpu",
+]
+
+[[package]]
+name = "piston_components"
+version = "0.1.0"
+dependencies = [
+ "mathlib",
+ "piston",
+ "piston_ctx",
+ "piston_window",
+]
+
+[[package]]
+name = "piston_ctx"
+version = "0.1.0"
+dependencies = [
+ "convenient_lib",
+ "interpretors",
+ "piston",
+ "piston_window",
+ "playground",
+ "qlearning",
+ "serde",
 ]
 
 [[package]]

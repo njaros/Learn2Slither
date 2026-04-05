@@ -1,78 +1,87 @@
+mod contexts;
+use convenient_lib::Void;
+use glyph_cache::rusttype::GlyphCache;
+use graphics::*;
+use piston_ctx::{Ctx, CtxValues, LeaderBoard, TestingParams, TrainingParams};
 use piston_window::*;
-use vecmath::*;
-use image as im;
-use wgpu_graphics::{Format, Texture, TextureSettings, UpdateTexture};
+use playground::PlayGround;
+use std::{path::Path, time::Instant};
+use wgpu_graphics::{Texture, TextureContext, TextureSettings};
 
-fn main() {
-    let (width, height) = (300, 300);
-    let mut window: PistonWindow =
-        WindowSettings::new("piston: paint", (width, height))
-        .exit_on_esc(true)
+use crate::contexts::file_handler::{get_leaderboard, save_leaderboard};
+
+const LEADERBOARD_PATH: &str = "leaderboard.json";
+
+fn main() -> Void {
+    let mut window: PistonWindow = WindowSettings::new("Learn2Slither", (1024, 768))
         .build()
         .unwrap();
 
-    let mut canvas = im::ImageBuffer::new(width, height);
-    let mut draw = false;
-    let mut texture_context = window.create_texture_context();
-    let mut texture: G2dTexture = Texture::from_image(
-            &mut texture_context,
-            &canvas,
-            &TextureSettings::new()
-        ).unwrap();
+    let assets = Path::new("assets");
+    let mut ctx_values = CtxValues {
+        glyphs: window
+            .load_font(assets.join("FiraSans-Regular.ttf"), TextureSettings::new())
+            .unwrap(),
+        ctx: Ctx::Lobby,
+        mouse_pressed: false,
+        lshift_pressed: false,
+        last_mouse_pos: None,
+        exit: false,
+        last_training_frame: Instant::now(),
+        playground: None,
+        selected_height: 10,
+        selected_width: 10,
+        training_params: TrainingParams::new(),
+        testing_params: TestingParams::new(),
+        leaderboard: match get_leaderboard(LEADERBOARD_PATH) {
+            Err(err) => {
+                println!("{err}");
+                    LeaderBoard {
+                    leaderboard: vec![]
+                }
+            },
+            Ok(l) => l.clone()
+        },
+        agent: None,
+    };
 
-    let mut last_pos: Option<[f64; 2]> = None;
+    window.set_lazy(true);
 
-    while let Some(e) = window.next() {
-        if e.render_args().is_some() {
-            let (w, h) = canvas.dimensions();
-            texture.update(
-                &mut texture_context,
-                Format::Rgba8,
-                &canvas,
-                [0, 0],
-                [w, h],
-            ).unwrap();
-            window.draw_2d(&e, |c, g, _device| {
-                use graphics::*;
+    while let Some(e) = window.next()
+        && !ctx_values.exit
+    {
+        match ctx_values.ctx {
+            Ctx::Lobby => contexts::lobby::lobby(&mut window, &e, &mut ctx_values),
+            Ctx::Test => contexts::testing::testing_route(&mut window, &e, &mut ctx_values),
+            Ctx::Train => {
+                contexts::training::training_route(&mut window, &e, &mut ctx_values)
+            }
+            Ctx::Play => contexts::playing::playing_route(&mut window, &e, &mut ctx_values),
+        }
 
-                clear([1.0; 4], g);
-                image(&texture, c.transform, g);
-            });
+        // Saving mouse's params.
+        if let Some(pos) = e.mouse_cursor_args() {
+            ctx_values.last_mouse_pos = Some(pos);
         }
         if let Some(button) = e.press_args() {
             if button == Button::Mouse(MouseButton::Left) {
-                draw = true;
+                ctx_values.mouse_pressed = true;
             }
-        };
+            if button == Button::Keyboard(Key::LShift) {
+                ctx_values.lshift_pressed = true;
+            }
+        }
         if let Some(button) = e.release_args() {
             if button == Button::Mouse(MouseButton::Left) {
-                draw = false;
-                last_pos = None
+                ctx_values.mouse_pressed = false;
             }
-        };
-        if draw {
-            if let Some(pos) = e.mouse_cursor_args() {
-                let (x, y) = (pos[0] as f32, pos[1] as f32);
-
-                if let Some(p) = last_pos {
-                    let (last_x, last_y) = (p[0] as f32, p[1] as f32);
-                    let distance = vec2_len(vec2_sub(p, pos)) as u32;
-
-                    for i in 0..distance {
-                        let diff_x = x - last_x;
-                        let diff_y = y - last_y;
-                        let delta = i as f32 / distance as f32;
-                        let new_x = (last_x + (diff_x * delta)) as u32;
-                        let new_y = (last_y + (diff_y * delta)) as u32;
-                        if new_x < width && new_y < height {
-                            canvas.put_pixel(new_x, new_y, im::Rgba([0, 0, 0, 255]));
-                        };
-                    };
-                };
-
-                last_pos = Some(pos)
-            };
-
+            if button == Button::Keyboard(Key::LShift) {
+                ctx_values.lshift_pressed = false;
+            }
         }
     }
+
+    save_leaderboard(LEADERBOARD_PATH, &ctx_values.leaderboard)?;
+
+    Ok(())
 }

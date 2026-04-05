@@ -1,9 +1,23 @@
-
 pub fn pow(a: usize, b: usize) -> usize {
     match b {
         0 => 1,
-        _ => a * pow(a, b - 1)
+        _ => a * pow(a, b - 1),
     }
+}
+
+pub fn lerp<T>(min: T, max: T, ratio: f64) -> T
+where
+    T: Into<f64> + From<f64>,
+{
+    let minf = min.into();
+    let maxf = max.into();
+    (minf + (ratio * (maxf - minf))).into()
+}
+
+pub fn lerp_usize(min: usize, max: usize, ratio: f64) -> usize {
+    let minf = min as f64;
+    let maxf = max as f64;
+    (minf + (ratio * (maxf - minf))) as usize
 }
 
 #[cfg(test)]
@@ -23,5 +37,16 @@ mod tests {
         assert_eq!(pow(1000, 1), 1000);
         assert_eq!(pow(1000, 2), 1000000);
         assert_eq!(pow(1000, 0), 1);
+    }
+
+    #[test]
+    fn test_lerp_usize() {
+        assert_eq!(lerp_usize(0, 10, 0.), 0);
+        assert_eq!(lerp_usize(10, 10, 0.), 10);
+        assert_eq!(lerp_usize(0, 10, 1.), 10);
+        assert_eq!(lerp_usize(0, 10, 0.5), 5);
+        assert_eq!(lerp_usize(10, 100, 0.), 10);
+        assert_eq!(lerp_usize(10, 100, 1.), 100);
+        assert_eq!(lerp_usize(10, 100, 0.5), 55);
     }
 }

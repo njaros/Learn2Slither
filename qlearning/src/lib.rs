@@ -1,24 +1,25 @@
-use playground::{Dir};
 use convenient_lib::{Res, Void};
+use interpretors::reward::reward_interpretor::RewardInterpretor;
+use interpretors::state::{ETSFactory, ets_lib::ETS};
+use playground::{Dir, PlayGround};
 use rand::{RngExt, make_rng, rngs::StdRng, seq::IndexedRandom};
-use serde::{Serialize, Deserialize};
-use std::io::{BufReader, BufWriter, Read};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::fs;
-use interpretors::state::{ETSFactory, ets_lib::ETS};
+use std::io::{BufReader, BufWriter, Read};
 
 pub type QTable = Vec<Vec<f64>>;
 
 #[derive(Serialize, Deserialize)]
-struct Model {
-    score: u32,
-    model: QTable,
-    ets_name: String,
-    name: String
+pub struct Model {
+    pub score: u32,
+    pub model: QTable,
+    pub ets_name: String,
+    pub name: String,
 }
 
 pub struct Agent {
-    name: String,
+    pub name: String,
     pub ets: Box<dyn ETS>,
     q_table: QTable,
     best_models: Vec<(QTable, u32)>,
@@ -27,11 +28,10 @@ pub struct Agent {
     discount_factor: f64,
     exploration_rate: f64,
     seed: StdRng,
-    actions: [Dir; 4]
+    actions: [Dir; 4],
 }
 
 impl Agent {
-
     pub fn new(ets_name: String, name: String) -> Res<Agent> {
         // duplicate all data to avoid the Rust ownership issues.
         let ets_for_cardinal = ETSFactory::create(ets_name.clone())?;
@@ -46,7 +46,7 @@ impl Agent {
             max_discount_factor: 0.9,
             exploration_rate: 0.5,
             seed: make_rng(),
-            actions: [Dir::Up, Dir::Right, Dir::Down, Dir::Left]
+            actions: [Dir::Up, Dir::Right, Dir::Down, Dir::Left],
         })
     }
 
@@ -60,20 +60,35 @@ impl Agent {
         let parsed_json = serde_json::from_str::<Model>(&contents)?;
         let q_table = parsed_json.model;
         let ets_name = parsed_json.ets_name;
-        Ok(
-            Agent {
-                name: new_name.unwrap_or(&name).clone(),
-                ets: ETSFactory::create(ets_name)?,
-                q_table,
-                best_models: vec![],
-                learning_rate: 0.1,
-                max_discount_factor: 0.9,
-                discount_factor: 0.9,
-                exploration_rate: 0.,
-                seed: make_rng(),
-                actions: [Dir::Up, Dir::Right, Dir::Down, Dir::Left]
-            }
-        )
+        Ok(Agent {
+            name: new_name.unwrap_or(&name).clone(),
+            ets: ETSFactory::create(ets_name)?,
+            q_table,
+            best_models: vec![],
+            learning_rate: 0.1,
+            max_discount_factor: 0.9,
+            discount_factor: 0.9,
+            exploration_rate: 0.,
+            seed: make_rng(),
+            actions: [Dir::Up, Dir::Right, Dir::Down, Dir::Left],
+        })
+    }
+
+    pub fn from_model(new_name: &String, model: &Model) -> Res<Self> {
+        let q_table = &model.model;
+        let ets_name = &model.ets_name;
+        Ok(Agent {
+            name: new_name.clone(),
+            ets: ETSFactory::create(ets_name.clone())?,
+            q_table: q_table.clone(),
+            best_models: vec![],
+            learning_rate: 0.1,
+            max_discount_factor: 0.9,
+            discount_factor: 0.9,
+            exploration_rate: 0.,
+            seed: make_rng(),
+            actions: [Dir::Up, Dir::Right, Dir::Down, Dir::Left],
+        })
     }
 
     pub fn save(&self) -> Void {
@@ -86,7 +101,9 @@ impl Agent {
                 let path = folder_path.clone() + "/" + &idx.to_string() + ".json";
                 let file = fs::File::create(&path);
                 if file.is_ok() {
-                    let mut writer = BufWriter::new(file.expect("cannot recover the original error because try_for_each is a shit feature."));
+                    let mut writer = BufWriter::new(file.expect(
+                        "cannot recover the original error because try_for_each is a shit feature.",
+                    ));
                     let v = json!(
                         {
                             "score": score,
@@ -96,11 +113,10 @@ impl Agent {
                         }
                     );
                     match serde_json::to_writer_pretty(&mut writer, &v) {
-                        Ok(_) => {},
-                        Err(_) => return Err("le try_for_each c'est de la merde")
+                        Ok(_) => {}
+                        Err(_) => return Err("le try_for_each c'est de la merde"),
                     }
-                }
-                else {
+                } else {
                     return Err("le try_for_each c'est de la merde");
                 }
                 Ok(())
@@ -108,26 +124,46 @@ impl Agent {
         Ok(())
     }
 
-    pub fn store_score(&mut self, score: u32) {
+    // Save the current state of the model.
+    pub fn snapshot(&self, score: u32) -> Void {
+        let folder_path = String::from("models/") + &self.name;
+        fs::create_dir_all(&folder_path)?;
+        let path = folder_path.clone() + "/" + "s.json";
+        let file = fs::File::create(&path)?;
+        let mut writer = BufWriter::new(file);
+        let v = json!(
+            {
+                "score": score,
+                "model": self.q_table,
+                "name": self.name,
+                "ets_name": self.ets.get_name()
+            }
+        );
+        serde_json::to_writer_pretty(&mut writer, &v)?;
+        Ok(())
+    }
+
+    pub fn get_best_score(&self) -> Vec<u32> {
+        self.best_models
+            .iter()
+            .map(|(_, s)| *s)
+            .collect()
+    }
+
+    pub fn store_score(&mut self, score: u32) -> bool {
         if self.best_models.len() < 10 {
-            self.best_models.push((self.q_table.clone(), score))
-        }
-        else {
-            let (idx, lesser_score) = self.best_models
-                .iter()
-                .enumerate()
-                .fold((0usize, u32::MAX), |(idx_less, less), (idx, (_, curr))| {
-                    match less < *curr {
-                        true => (idx_less, less),
-                        false => (idx, *curr)
-                    }
-                });
-            match lesser_score < score {
+            self.best_models.push((self.q_table.clone(), score));
+            self.best_models.sort_by(|(_, a), (_, b)| b.cmp(a));
+            true
+        } else {
+            match self.best_models[9].1 < score {
                 true => {
-                    self.best_models.remove(idx);
-                    self.best_models.push((self.q_table.clone(), score))
-                },
-                false => {}
+                    self.best_models.remove(9);
+                    self.best_models.push((self.q_table.clone(), score));
+                    self.best_models.sort_by(|(_, a), (_, b)| b.cmp(a));
+                    true
+                }
+                false => false
             }
         }
     }
@@ -147,22 +183,28 @@ impl Agent {
         }
     }
 
-    pub fn bellman(&mut self, previous_state: usize, new_state: Option<usize>, action: usize, reward: f64) {
+    pub fn bellman(
+        &mut self,
+        previous_state: usize,
+        new_state: Option<usize>,
+        action: usize,
+        reward: f64,
+    ) {
         let current_val = self.q_table[previous_state][action];
-        self.q_table[previous_state][action] =
-            (1f64 - self.learning_rate) * current_val +
-            self.learning_rate * (reward + self.discount_factor * match new_state {
-                None => 0f64,
-                Some(state) => {
-                    self.q_table[state]
-                        .iter()
-                        .fold(f64::MIN, |acc, &n| f64::max(acc, n))
-                }
-            })
+        self.q_table[previous_state][action] = (1f64 - self.learning_rate) * current_val
+            + self.learning_rate
+                * (reward
+                    + self.discount_factor
+                        * match new_state {
+                            None => 0f64,
+                            Some(state) => self.q_table[state]
+                                .iter()
+                                .fold(f64::MIN, |acc, &n| f64::max(acc, n)),
+                        })
     }
 
     pub fn play(&mut self, state: usize) -> Dir {
-        if self.exploration_rate > 0. && self.exploration_rate > self.seed.random_range(0f64..1.)  {
+        if self.exploration_rate > 0. && self.exploration_rate > self.seed.random_range(0f64..1.) {
             return *self.actions.choose(&mut self.seed).unwrap();
         }
         self.actions[self.q_table[state]
@@ -170,22 +212,62 @@ impl Agent {
             .enumerate()
             .fold((0usize, f64::MIN), |(max_idx, acc_max), (idx, &n)| {
                 if acc_max > n {
-                    return (max_idx, acc_max)
+                    return (max_idx, acc_max);
+                } else {
+                    return (idx, n);
                 }
-                else {
-                    return (idx, n)
-                }
-            }).0]
+            })
+            .0]
     }
-
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        
+fn dir_to_usize(dir: Dir) -> usize {
+    match dir {
+        Dir::Up => 0,
+        Dir::Right => 1,
+        Dir::Down => 2,
+        Dir::Left => 3,
     }
+}
+
+pub fn train_loop(agent: &mut Agent, rounds: usize, from_cli: bool) -> Void {
+    let mut reward_interpretor = RewardInterpretor::new();
+    let mut best_score = 0u32;
+
+    (1..rounds).for_each(|round| {
+        let mut playground: PlayGround = PlayGround::new(10, 10, make_rng());
+        let env = &playground.snake_view();
+        reward_interpretor.init(env);
+        let mut state = agent.ets.env_to_state(env);
+        let mut dir = agent.play(state);
+        let mut env = playground.next(dir);
+        while playground.is_alive() {
+            let next_state = agent.ets.env_to_state(&env);
+            let reward = reward_interpretor.get_reward(&env);
+            agent.bellman(state, Some(next_state), dir_to_usize(dir), reward);
+            state = next_state;
+            dir = agent.play(state);
+            env = playground.next(dir);
+        }
+        agent.bellman(
+            state,
+            None,
+            dir_to_usize(dir),
+            reward_interpretor.end_training_reward,
+        );
+        let score = playground.get_score();
+        if from_cli {
+            if score > best_score {
+                best_score = score;
+            }
+            println!("try: {round}: score: {score}, best: {best_score}");
+        }
+        agent.store_score(score);
+        agent.reduce_exploration_by(1. / (0.8 * rounds as f64));
+        agent.increase_discount_factor_by(0.75 / rounds as f64);
+    });
+
+    agent.save()?;
+
+    Ok(())
 }
