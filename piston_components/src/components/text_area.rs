@@ -1,8 +1,6 @@
 use piston::{Button, Key, PressEvent};
 use piston_ctx::CtxValues;
-use piston_window::graphics::{
-    Rectangle, Text, Transformed, color,
-};
+use piston_window::graphics::{Rectangle, Text, Transformed, color};
 
 use crate::components::PistonComponent;
 

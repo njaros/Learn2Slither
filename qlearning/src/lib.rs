@@ -144,10 +144,7 @@ impl Agent {
     }
 
     pub fn get_best_score(&self) -> Vec<u32> {
-        self.best_models
-            .iter()
-            .map(|(_, s)| *s)
-            .collect()
+        self.best_models.iter().map(|(_, s)| *s).collect()
     }
 
     pub fn store_score(&mut self, score: u32) -> bool {
@@ -163,7 +160,7 @@ impl Agent {
                     self.best_models.sort_by(|(_, a), (_, b)| b.cmp(a));
                     true
                 }
-                false => false
+                false => false,
             }
         }
     }

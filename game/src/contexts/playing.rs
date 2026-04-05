@@ -37,18 +37,14 @@ fn build_playground(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
         },
     );
 
-    let mut slider_width =
-        Slider::new(10, 50, ctx.selected_width, [200., 200., 500., 60.], |ctx| {
-            &mut ctx.selected_width
-        });
+    let mut slider_width = Slider::new(5, 50, ctx.selected_width, [200., 200., 500., 60.], |ctx| {
+        &mut ctx.selected_width
+    });
 
-    let mut slider_height = Slider::new(
-        10,
-        50,
-        ctx.selected_height,
-        [200., 450., 500., 60.],
-        |ctx| &mut ctx.selected_height,
-    );
+    let mut slider_height =
+        Slider::new(5, 50, ctx.selected_height, [200., 450., 500., 60.], |ctx| {
+            &mut ctx.selected_height
+        });
 
     window.draw_2d(e, |c, g, _| {
         clear([0.8, 0.8, 0.8, 1.0], g);
@@ -56,7 +52,7 @@ fn build_playground(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
         let transform = c.transform.trans(210., 150.);
         Text::new(40)
             .draw(
-                "Select the width (10 to 50)",
+                "Select the width (5 to 50)",
                 &mut ctx.glyphs,
                 &c.draw_state,
                 transform,
@@ -78,7 +74,7 @@ fn build_playground(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
         let transform = c.transform.trans(210., 400.);
         Text::new(40)
             .draw(
-                "Select the height (10 to 50)",
+                "Select the height (5 to 50)",
                 &mut ctx.glyphs,
                 &c.draw_state,
                 transform,
@@ -128,14 +124,13 @@ fn playing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
         },
     );
 
-    
     window.draw_2d(e, |c, g, _| {
         clear([0.8, 0.8, 0.8, 1.0], g);
-    
+
         let playground = ctx.playground.as_ref().unwrap();
         let alive = playground.state == State::Alive;
         let score = playground.get_score();
-    
+
         let board = Board::new(playground, alive);
 
         board.draw(&c, g);
@@ -253,7 +248,6 @@ fn playing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
     }
 
     back_button.handle_event(e, ctx);
-
 }
 
 pub fn playing_route(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {

@@ -1,7 +1,7 @@
 use playground::{Dir, PlayGround};
 use rand::make_rng;
 use std::error::Error;
-use std::io::{Read, Write, stdin, stdout};
+use std::io::{Read, stdin};
 use termios::{ECHO, ICANON, TCSANOW, Termios, tcsetattr};
 use trie::Trie;
 
@@ -30,7 +30,6 @@ fn init_inputs() -> Trie {
 fn main() -> Result<(), Box<dyn Error>> {
     let mut playground = PlayGround::new(10, 10, make_rng());
     let mut buffer = [0u8; 1];
-    let stdout = stdout();
     let mut reader = stdin();
     let old_termios = set_terminal()?;
     let mut trie = init_inputs();

@@ -16,7 +16,7 @@ pub fn lobby(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
         |ctx| {
             ctx.ctx = Ctx::Test;
             ctx.testing_params.model_names = get_model_names(MODEL_PATH);
-        }
+        },
     );
 
     let mut train_button = MyButton::new(

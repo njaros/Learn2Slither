@@ -19,9 +19,7 @@ pub fn get_leaderboard(file_path: &str) -> Res<LeaderBoard> {
 pub fn save_leaderboard(file_path: &str, leaderboard: &LeaderBoard) -> Void {
     let file = fs::File::create(file_path)?;
     let mut writer = BufWriter::new(file);
-    let v = json!(
-        leaderboard
-    );
+    let v = json!(leaderboard);
     serde_json::to_writer_pretty(&mut writer, &v)?;
     Ok(())
 }

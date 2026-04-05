@@ -137,7 +137,12 @@ impl PistonComponent for NamedSwitch {
         _: &piston::Event,
         ctx: &mut CtxValues,
     ) {
-        let switch_shapes = [self.shapes[0] + self.shapes[2] - 100., self.shapes[1], 100., self.shapes[3]];
+        let switch_shapes = [
+            self.shapes[0] + self.shapes[2] - 100.,
+            self.shapes[1],
+            100.,
+            self.shapes[3],
+        ];
         let background = Rectangle::new(self.background_color);
         let rect_on = Rectangle::new(match self.current {
             true => color::GREEN,
@@ -253,7 +258,12 @@ impl<U, V> PistonComponent for NamedSwitchAction<U, V> {
         _: &piston::Event,
         ctx: &mut CtxValues,
     ) {
-        let switch_shapes = [self.shapes[0] + self.shapes[2] - 100., self.shapes[1], 100., self.shapes[3]];
+        let switch_shapes = [
+            self.shapes[0] + self.shapes[2] - 100.,
+            self.shapes[1],
+            100.,
+            self.shapes[3],
+        ];
         let background = Rectangle::new(self.background_color);
         let rect_on = Rectangle::new(match self.current {
             true => color::GREEN,

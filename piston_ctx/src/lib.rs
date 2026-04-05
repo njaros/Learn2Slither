@@ -12,12 +12,12 @@ use serde::{Deserialize, Serialize};
 pub struct LeaderBoardItem {
     pub score: u32,
     pub model_name: String,
-    pub ets_name: String
+    pub ets_name: String,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct LeaderBoard {
-    pub leaderboard: Vec<LeaderBoardItem>
+    pub leaderboard: Vec<LeaderBoardItem>,
 }
 
 pub enum Ctx {
@@ -56,7 +56,7 @@ impl TestingParams {
             pause: false,
             next_step: false,
             snake_view: false,
-            infinite_loop: true
+            infinite_loop: true,
         }
     }
 }
@@ -86,7 +86,7 @@ pub struct TrainingParams {
     pub speed_time: usize,
     pub next_step: bool,
     pub just_snapshoted: bool,
-    pub just_save_all: bool
+    pub just_save_all: bool,
 }
 
 impl TrainingParams {
@@ -116,7 +116,7 @@ impl TrainingParams {
             speed_time: 100,
             next_step: false,
             just_snapshoted: false,
-            just_save_all: false
+            just_save_all: false,
         }
     }
 }
@@ -140,11 +140,11 @@ pub struct CtxValues<'a> {
 
     // Training params
     pub training_params: TrainingParams,
-    
+
     // Testing params
     pub testing_params: TestingParams,
     pub leaderboard: LeaderBoard,
-    
+
     // Agent
     pub agent: Option<Agent>,
 }
