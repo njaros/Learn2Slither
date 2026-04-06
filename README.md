@@ -21,6 +21,12 @@ This snake as some painful rules:
 - ./learn2slither.sh
 - have fun with your models !
 
+# Other binaries #
+
+'play' binarie is here to show on defense that the playground effectively returns the good output, and proove the code is not cheating.
+
+'l2s' is the CLI used for development. And is not fully implemented...
+
 ## Doc ##
 
 - https://fr.wikipedia.org/wiki/Q-learning#:~:text=En%20intelligence%20artificielle%2C%20plus%20pr%C3%A9cis%C3%A9ment,un%20%C3%A9tat%20donn%C3%A9%20du%20syst%C3%A8me.
