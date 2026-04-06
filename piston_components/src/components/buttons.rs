@@ -1,6 +1,5 @@
 use graphics::*;
 use piston::{Button, Event, MouseButton, ReleaseEvent};
-use piston_ctx::CtxValues;
 use piston_window::graphics::color;
 use piston_window::graphics::math;
 use piston_window::graphics::rectangle;
@@ -10,6 +9,7 @@ use piston_window::graphics::{Context, Rectangle};
 use piston_window::wgpu_graphics::WgpuGraphics;
 use piston_window::*;
 
+use crate::app_params::app_params::AppParams;
 use crate::components::PistonComponent;
 
 pub enum Style {
@@ -25,16 +25,16 @@ pub struct MyButton {
     text_color: Color,
     pub button_shapes: [f64; 4],
     text: String,
-    on_click: fn(ctx: &mut CtxValues),
+    on_click: fn(app: &mut AppParams),
 }
 
 impl MyButton {
-    fn _cursor_in(&self, ctx: &CtxValues) -> bool {
+    fn _cursor_in(&self, app: &AppParams) -> bool {
         let l_border = self.button_shapes[0];
         let r_border = l_border + self.button_shapes[2];
         let u_border = self.button_shapes[1];
         let d_border = u_border + self.button_shapes[3];
-        match ctx.last_mouse_pos {
+        match app.last_mouse_pos {
             None => false,
             Some([pos_x, pos_y]) => {
                 pos_x > l_border && pos_x < r_border && pos_y > u_border && pos_y < d_border
@@ -46,7 +46,7 @@ impl MyButton {
         style: Style,
         button_shapes: [f64; 4],
         text: String,
-        on_click: fn(ctx: &mut CtxValues),
+        on_click: fn(app: &mut AppParams),
     ) -> Self {
         let (normal_color, hover_color, border_color, text_color) = match style {
             Style::BLUE => (color::CYAN, color::TEAL, color::BLUE, color::BLACK),
@@ -71,9 +71,9 @@ impl MyButton {
 }
 
 impl PistonComponent for MyButton {
-    fn draw<'a>(&self, c: &Context, g: &mut WgpuGraphics<'_>, _: &Event, ctx: &'a mut CtxValues) {
+    fn draw<'a>(&self, c: &Context, g: &mut WgpuGraphics<'_>, _: &Event, app: &'a mut AppParams) {
         let rect = math::margin_rectangle(self.button_shapes, 1.0);
-        let color = match self._cursor_in(ctx) {
+        let color = match self._cursor_in(app) {
             false => self.normal_color,
             true => self.hover_color,
         };
@@ -84,16 +84,16 @@ impl PistonComponent for MyButton {
             self.button_shapes[1] + 32. + (self.button_shapes[3] - 40.) / 2.,
         );
         text::Text::new_color(self.text_color, 32)
-            .draw(&self.text, &mut ctx.glyphs, &c.draw_state, transform, g)
+            .draw(&self.text, &mut app.glyphs, &c.draw_state, transform, g)
             .unwrap();
     }
 
-    fn handle_event(&mut self, e: &Event, ctx: &mut CtxValues) {
+    fn handle_event(&mut self, e: &Event, app: &mut AppParams) {
         if let Some(button) = e.release_args() {
             if button == Button::Mouse(MouseButton::Left) {
-                match self._cursor_in(ctx) {
+                match self._cursor_in(app) {
                     false => {}
-                    true => (self.on_click)(ctx),
+                    true => (self.on_click)(app),
                 }
             }
         }
@@ -109,16 +109,16 @@ pub struct ButtonStoreVal<T: Clone + PartialEq> {
     pub button_shapes: [f64; 4],
     text: String,
     val: T,
-    store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut T,
+    store_val: for<'a> fn(&'a mut AppParams) -> &'a mut T,
 }
 
 impl<T: Clone + PartialEq> ButtonStoreVal<T> {
-    fn _cursor_in(&self, ctx: &CtxValues) -> bool {
+    fn _cursor_in(&self, app: &AppParams) -> bool {
         let l_border = self.button_shapes[0];
         let r_border = l_border + self.button_shapes[2];
         let u_border = self.button_shapes[1];
         let d_border = u_border + self.button_shapes[3];
-        match ctx.last_mouse_pos {
+        match app.last_mouse_pos {
             None => false,
             Some([pos_x, pos_y]) => {
                 pos_x > l_border && pos_x < r_border && pos_y > u_border && pos_y < d_border
@@ -126,12 +126,12 @@ impl<T: Clone + PartialEq> ButtonStoreVal<T> {
         }
     }
 
-    fn _cursor_in_pos(&self, pos: [f64; 2], ctx: &CtxValues) -> bool {
+    fn _cursor_in_pos(&self, pos: [f64; 2], app: &AppParams) -> bool {
         let l_border = pos[0];
         let r_border = l_border + self.button_shapes[2];
         let u_border = pos[1];
         let d_border = u_border + self.button_shapes[3];
-        match ctx.last_mouse_pos {
+        match app.last_mouse_pos {
             None => false,
             Some([pos_x, pos_y]) => {
                 pos_x > l_border && pos_x < r_border && pos_y > u_border && pos_y < d_border
@@ -144,7 +144,7 @@ impl<T: Clone + PartialEq> ButtonStoreVal<T> {
         button_shapes: [f64; 4],
         text: String,
         val: T,
-        store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut T,
+        store_val: for<'a> fn(&'a mut AppParams) -> &'a mut T,
     ) -> Self {
         let (normal_color, hover_color, selected_color, border_color, text_color) = match style {
             Style::BLUE => (
@@ -188,15 +188,15 @@ impl<T: Clone + PartialEq> ButtonStoreVal<T> {
         c: &Context,
         g: &mut WgpuGraphics<'_>,
         _: &Event,
-        ctx: &mut CtxValues,
+        app: &mut AppParams,
     ) {
         let rect = math::margin_rectangle(
             [pos[0], pos[1], self.button_shapes[2], self.button_shapes[3]],
             1.0,
         );
-        let color = match self.val == *(self.store_val)(ctx) {
+        let color = match self.val == *(self.store_val)(app) {
             true => self.selected_color,
-            false => match self._cursor_in_pos(pos, ctx) {
+            false => match self._cursor_in_pos(pos, app) {
                 false => self.normal_color,
                 true => self.hover_color,
             },
@@ -207,16 +207,16 @@ impl<T: Clone + PartialEq> ButtonStoreVal<T> {
             .transform
             .trans(pos[0], pos[1] + 32. + (self.button_shapes[3] - 40.) / 2.);
         text::Text::new_color(self.text_color, 32)
-            .draw(&self.text, &mut ctx.glyphs, &c.draw_state, transform, g)
+            .draw(&self.text, &mut app.glyphs, &c.draw_state, transform, g)
             .unwrap();
     }
 
-    pub fn handle_event_pos<'b>(&mut self, pos: [f64; 2], e: &Event, ctx: &'b mut CtxValues) {
+    pub fn handle_event_pos<'b>(&mut self, pos: [f64; 2], e: &Event, app: &'b mut AppParams) {
         if let Some(button) = e.release_args() {
             if button == Button::Mouse(MouseButton::Left) {
-                match self._cursor_in_pos(pos, ctx) {
+                match self._cursor_in_pos(pos, app) {
                     false => {}
-                    true => *(self.store_val)(ctx) = self.val.clone(),
+                    true => *(self.store_val)(app) = self.val.clone(),
                 }
             }
         }
@@ -224,11 +224,11 @@ impl<T: Clone + PartialEq> ButtonStoreVal<T> {
 }
 
 impl<T: Clone + PartialEq> PistonComponent for ButtonStoreVal<T> {
-    fn draw(&self, c: &Context, g: &mut WgpuGraphics<'_>, _: &Event, ctx: &mut CtxValues) {
+    fn draw(&self, c: &Context, g: &mut WgpuGraphics<'_>, _: &Event, app: &mut AppParams) {
         let rect = math::margin_rectangle(self.button_shapes, 1.0);
-        let color = match self.val == *(self.store_val)(ctx) {
+        let color = match self.val == *(self.store_val)(app) {
             true => self.selected_color,
-            false => match self._cursor_in(ctx) {
+            false => match self._cursor_in(app) {
                 false => self.normal_color,
                 true => self.hover_color,
             },
@@ -240,16 +240,16 @@ impl<T: Clone + PartialEq> PistonComponent for ButtonStoreVal<T> {
             self.button_shapes[1] + 32. + (self.button_shapes[3] - 40.) / 2.,
         );
         text::Text::new_color(self.text_color, 32)
-            .draw(&self.text, &mut ctx.glyphs, &c.draw_state, transform, g)
+            .draw(&self.text, &mut app.glyphs, &c.draw_state, transform, g)
             .unwrap();
     }
 
-    fn handle_event<'b>(&mut self, e: &Event, ctx: &'b mut CtxValues) {
+    fn handle_event<'b>(&mut self, e: &Event, app: &'b mut AppParams) {
         if let Some(button) = e.release_args() {
             if button == Button::Mouse(MouseButton::Left) {
-                match self._cursor_in(ctx) {
+                match self._cursor_in(app) {
                     false => {}
-                    true => *(self.store_val)(ctx) = self.val.clone(),
+                    true => *(self.store_val)(app) = self.val.clone(),
                 }
             }
         }
@@ -265,18 +265,18 @@ pub struct ButtonActionFromVal<T: Clone + PartialEq, U> {
     pub button_shapes: [f64; 4],
     text: String,
     val: T,
-    store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut T,
-    where_to_store: for<'a> fn(&'a mut CtxValues) -> &'a mut U,
-    what_to_store: fn(&mut CtxValues) -> U,
+    store_val: for<'a> fn(&'a mut AppParams) -> &'a mut T,
+    where_to_store: for<'a> fn(&'a mut AppParams) -> &'a mut U,
+    what_to_store: fn(&mut AppParams) -> U,
 }
 
 impl<T: Clone + PartialEq, U> ButtonActionFromVal<T, U> {
-    fn _cursor_in(&self, ctx: &CtxValues) -> bool {
+    fn _cursor_in(&self, app: &AppParams) -> bool {
         let l_border = self.button_shapes[0];
         let r_border = l_border + self.button_shapes[2];
         let u_border = self.button_shapes[1];
         let d_border = u_border + self.button_shapes[3];
-        match ctx.last_mouse_pos {
+        match app.last_mouse_pos {
             None => false,
             Some([pos_x, pos_y]) => {
                 pos_x > l_border && pos_x < r_border && pos_y > u_border && pos_y < d_border
@@ -284,12 +284,12 @@ impl<T: Clone + PartialEq, U> ButtonActionFromVal<T, U> {
         }
     }
 
-    fn _cursor_in_pos(&self, pos: [f64; 2], ctx: &CtxValues) -> bool {
+    fn _cursor_in_pos(&self, pos: [f64; 2], app: &AppParams) -> bool {
         let l_border = pos[0];
         let r_border = l_border + self.button_shapes[2];
         let u_border = pos[1];
         let d_border = u_border + self.button_shapes[3];
-        match ctx.last_mouse_pos {
+        match app.last_mouse_pos {
             None => false,
             Some([pos_x, pos_y]) => {
                 pos_x > l_border && pos_x < r_border && pos_y > u_border && pos_y < d_border
@@ -302,9 +302,9 @@ impl<T: Clone + PartialEq, U> ButtonActionFromVal<T, U> {
         button_shapes: [f64; 4],
         text: String,
         val: T,
-        store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut T,
-        where_to_store: for<'a> fn(&'a mut CtxValues) -> &'a mut U,
-        what_to_store: fn(&mut CtxValues) -> U,
+        store_val: for<'a> fn(&'a mut AppParams) -> &'a mut T,
+        where_to_store: for<'a> fn(&'a mut AppParams) -> &'a mut U,
+        what_to_store: fn(&mut AppParams) -> U,
     ) -> Self {
         let (normal_color, hover_color, selected_color, border_color, text_color) = match style {
             Style::BLUE => (
@@ -350,15 +350,15 @@ impl<T: Clone + PartialEq, U> ButtonActionFromVal<T, U> {
         c: &Context,
         g: &mut WgpuGraphics<'_>,
         _: &Event,
-        ctx: &mut CtxValues,
+        app: &mut AppParams,
     ) {
         let rect = math::margin_rectangle(
             [pos[0], pos[1], self.button_shapes[2], self.button_shapes[3]],
             1.0,
         );
-        let color = match self.val == *(self.store_val)(ctx) {
+        let color = match self.val == *(self.store_val)(app) {
             true => self.selected_color,
-            false => match self._cursor_in_pos(pos, ctx) {
+            false => match self._cursor_in_pos(pos, app) {
                 false => self.normal_color,
                 true => self.hover_color,
             },
@@ -369,18 +369,18 @@ impl<T: Clone + PartialEq, U> ButtonActionFromVal<T, U> {
             .transform
             .trans(pos[0], pos[1] + 32. + (self.button_shapes[3] - 40.) / 2.);
         text::Text::new_color(self.text_color, 32)
-            .draw(&self.text, &mut ctx.glyphs, &c.draw_state, transform, g)
+            .draw(&self.text, &mut app.glyphs, &c.draw_state, transform, g)
             .unwrap();
     }
 
-    pub fn handle_event_pos<'b>(&mut self, pos: [f64; 2], e: &Event, ctx: &'b mut CtxValues) {
+    pub fn handle_event_pos<'b>(&mut self, pos: [f64; 2], e: &Event, app: &'b mut AppParams) {
         if let Some(button) = e.release_args() {
             if button == Button::Mouse(MouseButton::Left) {
-                match self._cursor_in_pos(pos, ctx) {
+                match self._cursor_in_pos(pos, app) {
                     false => {}
                     true => {
-                        *(self.store_val)(ctx) = self.val.clone();
-                        *(self.where_to_store)(ctx) = (self.what_to_store)(ctx);
+                        *(self.store_val)(app) = self.val.clone();
+                        *(self.where_to_store)(app) = (self.what_to_store)(app);
                     }
                 }
             }
@@ -389,11 +389,11 @@ impl<T: Clone + PartialEq, U> ButtonActionFromVal<T, U> {
 }
 
 impl<T: Clone + PartialEq, U> PistonComponent for ButtonActionFromVal<T, U> {
-    fn draw(&self, c: &Context, g: &mut WgpuGraphics<'_>, _: &Event, ctx: &mut CtxValues) {
+    fn draw(&self, c: &Context, g: &mut WgpuGraphics<'_>, _: &Event, app: &mut AppParams) {
         let rect = math::margin_rectangle(self.button_shapes, 1.0);
-        let color = match self.val == *(self.store_val)(ctx) {
+        let color = match self.val == *(self.store_val)(app) {
             true => self.selected_color,
-            false => match self._cursor_in(ctx) {
+            false => match self._cursor_in(app) {
                 false => self.normal_color,
                 true => self.hover_color,
             },
@@ -405,18 +405,18 @@ impl<T: Clone + PartialEq, U> PistonComponent for ButtonActionFromVal<T, U> {
             self.button_shapes[1] + 32. + (self.button_shapes[3] - 40.) / 2.,
         );
         text::Text::new_color(self.text_color, 32)
-            .draw(&self.text, &mut ctx.glyphs, &c.draw_state, transform, g)
+            .draw(&self.text, &mut app.glyphs, &c.draw_state, transform, g)
             .unwrap();
     }
 
-    fn handle_event<'b>(&mut self, e: &Event, ctx: &'b mut CtxValues) {
+    fn handle_event<'b>(&mut self, e: &Event, app: &'b mut AppParams) {
         if let Some(button) = e.release_args() {
             if button == Button::Mouse(MouseButton::Left) {
-                match self._cursor_in(ctx) {
+                match self._cursor_in(app) {
                     false => {}
                     true => {
-                        *(self.store_val)(ctx) = self.val.clone();
-                        *(self.where_to_store)(ctx) = (self.what_to_store)(ctx);
+                        *(self.store_val)(app) = self.val.clone();
+                        *(self.where_to_store)(app) = (self.what_to_store)(app);
                     }
                 }
             }

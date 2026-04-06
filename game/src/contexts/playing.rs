@@ -1,26 +1,24 @@
 use graphics::*;
-use piston_components::components::{
+use piston_components::{app_params::app_params::{AppParams, Route}, components::{
     PistonComponent,
     buttons::{MyButton, Style},
     sliders::Slider,
-};
+}};
 use piston_window::{graphics::Text, *};
 use playground::{Dir, PlayGround, State};
 use rand::make_rng;
 
-use piston_ctx::{Ctx, CtxValues};
-
 use crate::contexts::board_helpers::Board;
 
-fn build_playground(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
+fn build_playground(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
     let mut back_button = MyButton::new(
         Style::RED,
         [772., 650., 200., 75.],
         "      CANCEL".into(),
-        |ctx| {
-            ctx.ctx = Ctx::Lobby;
-            ctx.selected_height = 10;
-            ctx.selected_width = 10;
+        |app| {
+            app.route = Route::Lobby;
+            app.selected_height = 10;
+            app.selected_width = 10;
         },
     );
 
@@ -28,22 +26,22 @@ fn build_playground(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
         Style::GREEN,
         [532., 650., 200., 75.],
         "     CREATE".into(),
-        |ctx| {
-            ctx.playground = Some(PlayGround::new(
-                ctx.selected_height,
-                ctx.selected_width,
+        |app| {
+            app.playground = Some(PlayGround::new(
+                app.selected_height,
+                app.selected_width,
                 make_rng(),
             ));
         },
     );
 
-    let mut slider_width = Slider::new(5, 50, ctx.selected_width, [200., 200., 500., 60.], |ctx| {
-        &mut ctx.selected_width
+    let mut slider_width = Slider::new(5, 50, app.selected_width, [200., 200., 500., 60.], |app| {
+        &mut app.selected_width
     });
 
     let mut slider_height =
-        Slider::new(5, 50, ctx.selected_height, [200., 450., 500., 60.], |ctx| {
-            &mut ctx.selected_height
+        Slider::new(5, 50, app.selected_height, [200., 450., 500., 60.], |app| {
+            &mut app.selected_height
         });
 
     window.draw_2d(e, |c, g, _| {
@@ -53,18 +51,18 @@ fn build_playground(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
         Text::new(40)
             .draw(
                 "Select the width (5 to 50)",
-                &mut ctx.glyphs,
+                &mut app.glyphs,
                 &c.draw_state,
                 transform,
                 g,
             )
             .unwrap();
-        slider_width.draw(&c, g, e, ctx);
+        slider_width.draw(&c, g, e, app);
         let transform = c.transform.trans(725., 240.);
         Text::new(40)
             .draw(
-                &ctx.selected_width.to_string(),
-                &mut ctx.glyphs,
+                &app.selected_width.to_string(),
+                &mut app.glyphs,
                 &c.draw_state,
                 transform,
                 g,
@@ -75,59 +73,59 @@ fn build_playground(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
         Text::new(40)
             .draw(
                 "Select the height (5 to 50)",
-                &mut ctx.glyphs,
+                &mut app.glyphs,
                 &c.draw_state,
                 transform,
                 g,
             )
             .unwrap();
-        slider_height.draw(&c, g, e, ctx);
+        slider_height.draw(&c, g, e, app);
         let transform = c.transform.trans(725., 490.);
         Text::new(40)
             .draw(
-                &ctx.selected_height.to_string(),
-                &mut ctx.glyphs,
+                &app.selected_height.to_string(),
+                &mut app.glyphs,
                 &c.draw_state,
                 transform,
                 g,
             )
             .unwrap();
 
-        create_button.draw(&c, g, e, ctx);
-        back_button.draw(&c, g, e, ctx);
+        create_button.draw(&c, g, e, app);
+        back_button.draw(&c, g, e, app);
     });
 
-    slider_width.handle_event(e, ctx);
-    slider_height.handle_event(e, ctx);
-    create_button.handle_event(e, ctx);
-    back_button.handle_event(e, ctx);
+    slider_width.handle_event(e, app);
+    slider_height.handle_event(e, app);
+    create_button.handle_event(e, app);
+    back_button.handle_event(e, app);
 
     if let Some(button) = e.press_args() {
         if button == Button::Keyboard(Key::Escape) {
-            ctx.ctx = Ctx::Lobby;
-            ctx.selected_width = 10;
-            ctx.selected_height = 10;
+            app.route = Route::Lobby;
+            app.selected_width = 10;
+            app.selected_height = 10;
         }
     }
 }
 
-fn playing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
+fn playing_board(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
     let mut back_button = MyButton::new(
         Style::RED,
         [772., 650., 200., 75.],
         "       HOME".into(),
-        |ctx| {
-            ctx.ctx = Ctx::Lobby;
-            ctx.playground = None;
-            ctx.selected_height = 10;
-            ctx.selected_width = 10;
+        |app| {
+            app.route = Route::Lobby;
+            app.playground = None;
+            app.selected_height = 10;
+            app.selected_width = 10;
         },
     );
 
     window.draw_2d(e, |c, g, _| {
         clear([0.8, 0.8, 0.8, 1.0], g);
 
-        let playground = ctx.playground.as_ref().unwrap();
+        let playground = app.playground.as_ref().unwrap();
         let alive = playground.state == State::Alive;
         let score = playground.get_score();
 
@@ -141,7 +139,7 @@ fn playing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
             .draw_pos(
                 "PLAYING BOARD",
                 [780., 50.],
-                &mut ctx.glyphs,
+                &mut app.glyphs,
                 &c.draw_state,
                 c.transform,
                 g,
@@ -151,7 +149,7 @@ fn playing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
             .draw_pos(
                 &format!("Score: {}", score.to_string()),
                 [780., 550.],
-                &mut ctx.glyphs,
+                &mut app.glyphs,
                 &c.draw_state,
                 c.transform,
                 g,
@@ -161,7 +159,7 @@ fn playing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
             .draw_pos(
                 "HEAD",
                 [825., 150.],
-                &mut ctx.glyphs,
+                &mut app.glyphs,
                 &c.draw_state,
                 c.transform,
                 g,
@@ -171,7 +169,7 @@ fn playing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
             .draw_pos(
                 "BODY",
                 [825., 200.],
-                &mut ctx.glyphs,
+                &mut app.glyphs,
                 &c.draw_state,
                 c.transform,
                 g,
@@ -181,7 +179,7 @@ fn playing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
             .draw_pos(
                 "WALL",
                 [825., 250.],
-                &mut ctx.glyphs,
+                &mut app.glyphs,
                 &c.draw_state,
                 c.transform,
                 g,
@@ -191,7 +189,7 @@ fn playing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
             .draw_pos(
                 "UNSEEN",
                 [825., 300.],
-                &mut ctx.glyphs,
+                &mut app.glyphs,
                 &c.draw_state,
                 c.transform,
                 g,
@@ -201,7 +199,7 @@ fn playing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
             .draw_pos(
                 "RED APPLE",
                 [825., 350.],
-                &mut ctx.glyphs,
+                &mut app.glyphs,
                 &c.draw_state,
                 c.transform,
                 g,
@@ -211,7 +209,7 @@ fn playing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
             .draw_pos(
                 "GREEN APPLE",
                 [825., 400.],
-                &mut ctx.glyphs,
+                &mut app.glyphs,
                 &c.draw_state,
                 c.transform,
                 g,
@@ -229,30 +227,30 @@ fn playing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
         Rectangle::new(color::RED).draw([780., 320., 40., 40.], &c.draw_state, c.transform, g);
         Rectangle::new(color::GREEN).draw([780., 370., 40., 40.], &c.draw_state, c.transform, g);
 
-        back_button.draw(&c, g, e, ctx);
+        back_button.draw(&c, g, e, app);
     });
 
     if let Some(button) = e.press_args() {
         if button == Button::Keyboard(Key::Right) || button == Button::Keyboard(Key::D) {
-            ctx.playground.as_mut().unwrap().next(Dir::Right);
+            app.playground.as_mut().unwrap().next(Dir::Right);
         } else if button == Button::Keyboard(Key::Down) || button == Button::Keyboard(Key::S) {
-            ctx.playground.as_mut().unwrap().next(Dir::Down);
+            app.playground.as_mut().unwrap().next(Dir::Down);
         } else if button == Button::Keyboard(Key::Up) || button == Button::Keyboard(Key::W) {
-            ctx.playground.as_mut().unwrap().next(Dir::Up);
+            app.playground.as_mut().unwrap().next(Dir::Up);
         } else if button == Button::Keyboard(Key::Left) || button == Button::Keyboard(Key::A) {
-            ctx.playground.as_mut().unwrap().next(Dir::Left);
+            app.playground.as_mut().unwrap().next(Dir::Left);
         } else if button == Button::Keyboard(Key::Escape) {
-            ctx.ctx = Ctx::Lobby;
-            ctx.playground = None;
+            app.route = Route::Lobby;
+            app.playground = None;
         }
     }
 
-    back_button.handle_event(e, ctx);
+    back_button.handle_event(e, app);
 }
 
-pub fn playing_route(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
-    match ctx.playground {
-        None => build_playground(window, e, ctx),
-        _ => playing_board(window, e, ctx),
+pub fn playing_route(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
+    match app.playground {
+        None => build_playground(window, e, app),
+        _ => playing_board(window, e, app),
     }
 }

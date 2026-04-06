@@ -21,7 +21,7 @@ pub struct LeaderBoard {
     pub leaderboard: Vec<LeaderBoardItem>,
 }
 
-pub enum Ctx {
+pub enum Route {
     Lobby,
     Train,
     Test,
@@ -122,13 +122,13 @@ impl TrainingParams {
     }
 }
 
-pub struct CtxValues<'a> {
+pub struct AppParams<'a> {
     // Caches
     pub glyphs: GlyphCache<'a, TextureContext, Texture>,
 
     // App navigation contexts
     pub logo: G2dTexture,
-    pub ctx: Ctx,
+    pub route: Route,
     pub mouse_pressed: bool,
     pub lshift_pressed: bool,
     pub last_mouse_pos: Option<[f64; 2]>,

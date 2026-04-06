@@ -1,6 +1,6 @@
-use mathlib::pow;
 /// ETS for Environment_To_State.
 /// Here can be listed all the different logic of the Q-Learning of the agent.
+use mathlib::pow;
 use playground::Tile;
 
 type Env = Vec<Vec<Tile>>;

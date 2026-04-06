@@ -1,15 +1,14 @@
 use piston::{Button, Key, PressEvent};
-use piston_ctx::CtxValues;
 use piston_window::graphics::{Rectangle, Text, Transformed, color};
 
-use crate::components::PistonComponent;
+use crate::{app_params::app_params::AppParams, components::PistonComponent};
 
 pub struct TextArea {
     pos: [f64; 2],
     max_len: usize,
     font_size: u32,
     current: String,
-    store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut String,
+    store_val: for<'a> fn(&'a mut AppParams) -> &'a mut String,
 }
 
 impl TextArea {
@@ -18,7 +17,7 @@ impl TextArea {
         max_len: usize,
         font_size: u32,
         current: String,
-        store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut String,
+        store_val: for<'a> fn(&'a mut AppParams) -> &'a mut String,
     ) -> Self {
         Self {
             pos,
@@ -36,7 +35,7 @@ impl PistonComponent for TextArea {
         c: &piston_window::graphics::Context,
         g: &mut piston_window::wgpu_graphics::WgpuGraphics<'_>,
         _: &piston::Event,
-        ctx: &mut CtxValues,
+        app: &mut AppParams,
     ) {
         Rectangle::new(color::WHITE).draw(
             [
@@ -52,7 +51,7 @@ impl PistonComponent for TextArea {
         Text::new(self.font_size)
             .draw(
                 &self.current,
-                &mut ctx.glyphs,
+                &mut app.glyphs,
                 &c.draw_state,
                 c.transform.trans(
                     self.pos[0] + 2. / 3. * self.font_size as f64,
@@ -63,17 +62,17 @@ impl PistonComponent for TextArea {
             .unwrap();
     }
 
-    fn handle_event<'a>(&mut self, e: &piston::Event, ctx: &'a mut CtxValues) {
+    fn handle_event<'a>(&mut self, e: &piston::Event, app: &'a mut AppParams) {
         if let Some(button) = e.press_args() {
             match button {
                 Button::Keyboard(key) => {
                     if key == Key::Backspace {
-                        (self.store_val)(ctx).pop();
-                    } else if (self.store_val)(ctx).len() < self.max_len {
+                        (self.store_val)(app).pop();
+                    } else if (self.store_val)(app).len() < self.max_len {
                         if (key >= Key::A && key <= Key::Z) || (key >= Key::D0 && key <= Key::D9) {
-                            (self.store_val)(ctx).push(char::from_u32(key.into()).unwrap())
+                            (self.store_val)(app).push(char::from_u32(key.into()).unwrap())
                         } else if key == Key::Space {
-                            (self.store_val)(ctx).push('_')
+                            (self.store_val)(app).push('_')
                         }
                     }
                 }

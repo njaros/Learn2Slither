@@ -1,6 +1,6 @@
 mod contexts;
 use convenient_lib::Void;
-use piston_ctx::{Ctx, CtxValues, LeaderBoard, TestingParams, TrainingParams};
+use piston_components::app_params::app_params::{AppParams, LeaderBoard, Route, TestingParams, TrainingParams};
 use piston_window::{wgpu_graphics::Texture, *};
 use std::{path::Path, time::Instant};
 use wgpu_graphics::TextureSettings;
@@ -16,11 +16,11 @@ fn main() -> Void {
 
     let assets = Path::new("assets");
     
-    let mut ctx_values = CtxValues {
+    let mut app = AppParams {
         glyphs: window
             .load_font(assets.join("FiraSans-Regular.ttf"), TextureSettings::new())
             .unwrap(),
-        ctx: Ctx::Lobby,
+        route: Route::Lobby,
         logo: Texture::from_path(
             &mut window.create_texture_context(),
             assets.join("snake.jpg"),
@@ -51,38 +51,38 @@ fn main() -> Void {
     window.set_lazy(true);
 
     while let Some(e) = window.next()
-        && !ctx_values.exit
+        && !app.exit
     {
-        match ctx_values.ctx {
-            Ctx::Lobby => contexts::lobby::lobby(&mut window, &e, &mut ctx_values),
-            Ctx::Test => contexts::testing::testing_route(&mut window, &e, &mut ctx_values),
-            Ctx::Train => contexts::training::training_route(&mut window, &e, &mut ctx_values),
-            Ctx::Play => contexts::playing::playing_route(&mut window, &e, &mut ctx_values),
+        match app.route {
+            Route::Lobby => contexts::lobby::lobby(&mut window, &e, &mut app),
+            Route::Test => contexts::testing::testing_route(&mut window, &e, &mut app),
+            Route::Train => contexts::training::training_route(&mut window, &e, &mut app),
+            Route::Play => contexts::playing::playing_route(&mut window, &e, &mut app),
         }
 
         // Saving mouse's params.
         if let Some(pos) = e.mouse_cursor_args() {
-            ctx_values.last_mouse_pos = Some(pos);
+            app.last_mouse_pos = Some(pos);
         }
         if let Some(button) = e.press_args() {
             if button == Button::Mouse(MouseButton::Left) {
-                ctx_values.mouse_pressed = true;
+                app.mouse_pressed = true;
             }
             if button == Button::Keyboard(Key::LShift) {
-                ctx_values.lshift_pressed = true;
+                app.lshift_pressed = true;
             }
         }
         if let Some(button) = e.release_args() {
             if button == Button::Mouse(MouseButton::Left) {
-                ctx_values.mouse_pressed = false;
+                app.mouse_pressed = false;
             }
             if button == Button::Keyboard(Key::LShift) {
-                ctx_values.lshift_pressed = false;
+                app.lshift_pressed = false;
             }
         }
     }
 
-    save_leaderboard(LEADERBOARD_PATH, &ctx_values.leaderboard)?;
+    save_leaderboard(LEADERBOARD_PATH, &app.leaderboard)?;
 
     Ok(())
 }

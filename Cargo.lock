@@ -911,7 +911,6 @@ dependencies = [
  "itertools",
  "piston",
  "piston_components",
- "piston_ctx",
  "piston_window",
  "playground",
  "qlearning",
@@ -2022,17 +2021,8 @@ dependencies = [
 name = "piston_components"
 version = "0.1.0"
 dependencies = [
- "mathlib",
- "piston",
- "piston_ctx",
- "piston_window",
-]
-
-[[package]]
-name = "piston_ctx"
-version = "0.1.0"
-dependencies = [
  "convenient_lib",
+ "mathlib",
  "piston",
  "piston_window",
  "playground",
