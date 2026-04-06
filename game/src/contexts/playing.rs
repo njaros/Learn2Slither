@@ -1,9 +1,12 @@
 use graphics::*;
-use piston_components::{app_params::app_params::{AppParams, Route}, components::{
-    PistonComponent,
-    buttons::{MyButton, Style},
-    sliders::Slider,
-}};
+use piston_components::{
+    app_params::app_params::{AppParams, Route},
+    components::{
+        PistonComponent,
+        buttons::{MyButton, Style},
+        sliders::Slider,
+    },
+};
 use piston_window::{graphics::Text, *};
 use playground::{Dir, PlayGround, State};
 use rand::make_rng;

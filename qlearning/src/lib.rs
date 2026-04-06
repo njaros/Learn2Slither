@@ -5,8 +5,8 @@ use rand::make_rng;
 use crate::{agent::agent::Agent, reward::reward_interpretor::RewardInterpretor};
 
 pub mod agent;
-pub mod state;
 pub mod reward;
+pub mod state;
 
 fn dir_to_usize(dir: Dir) -> usize {
     match dir {

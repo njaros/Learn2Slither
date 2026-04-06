@@ -45,15 +45,33 @@ pub fn lobby(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
 
         image(&app.logo, c.transform.zoom(2.), g);
 
-        Text::new_color(color::OLIVE, 75).draw(
-            "LEARN", &mut app.glyphs, &c.draw_state,
-            c.transform.trans(400., 100.), g).unwrap();
-        Text::new_color(color::OLIVE, 75).draw(
-            "TO", &mut app.glyphs, &c.draw_state,
-            c.transform.trans(450., 200.), g).unwrap();
-        Text::new_color(color::OLIVE, 75).draw(
-            "SLITHER", &mut app.glyphs, &c.draw_state,
-            c.transform.trans(390., 300.), g).unwrap();
+        Text::new_color(color::OLIVE, 75)
+            .draw(
+                "LEARN",
+                &mut app.glyphs,
+                &c.draw_state,
+                c.transform.trans(400., 100.),
+                g,
+            )
+            .unwrap();
+        Text::new_color(color::OLIVE, 75)
+            .draw(
+                "TO",
+                &mut app.glyphs,
+                &c.draw_state,
+                c.transform.trans(450., 200.),
+                g,
+            )
+            .unwrap();
+        Text::new_color(color::OLIVE, 75)
+            .draw(
+                "SLITHER",
+                &mut app.glyphs,
+                &c.draw_state,
+                c.transform.trans(390., 300.),
+                g,
+            )
+            .unwrap();
 
         test_button.draw(&c, g, &e, app);
         train_button.draw(&c, g, &e, app);

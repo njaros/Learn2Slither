@@ -4,19 +4,26 @@ use crate::contexts::{
 };
 use convenient_lib::Res;
 use graphics::*;
-use piston_components::{app_params::app_params::{AppParams, Route, TrainingParams}, components::{
-    PistonComponent,
-    buttons::{ButtonActionFromVal, ButtonStoreVal, MyButton, Style},
-    sliders::{Slider, SliderVertical},
-    switch::{NamedSwitch, NamedSwitchAction},
-    text_area::TextArea,
-}};
+use piston_components::{
+    app_params::app_params::{AppParams, Route, TrainingParams},
+    components::{
+        PistonComponent,
+        buttons::{ButtonActionFromVal, ButtonStoreVal, MyButton, Style},
+        sliders::{Slider, SliderVertical},
+        switch::{NamedSwitch, NamedSwitchAction},
+        text_area::TextArea,
+    },
+};
 use piston_window::{
     graphics::{Rectangle, Text},
     *,
 };
 use playground::{Dir, PlayGround};
-use qlearning::{agent::agent::{Agent, Model}, state::list_all_ets, train_loop};
+use qlearning::{
+    agent::agent::{Agent, Model},
+    state::list_all_ets,
+    train_loop,
+};
 use rand::make_rng;
 use std::{
     path::Path,

@@ -1,2 +1,2 @@
-pub mod components;
 pub mod app_params;
+pub mod components;
