@@ -141,10 +141,10 @@ impl Agent {
     }
 
     // Save the current state of the model.
-    pub fn snapshot(&self, score: u32) -> Void {
+    pub fn snapshot(&self, score: u32, snapshot_name: char) -> Void {
         let folder_path = String::from("models/") + &self.name;
         fs::create_dir_all(&folder_path)?;
-        let path = folder_path.clone() + "/" + "s.json";
+        let path = folder_path.clone() + "/" + &snapshot_name.to_string() + ".json";
         let file = fs::File::create(&path)?;
         let mut writer = BufWriter::new(file);
         let v = json!(

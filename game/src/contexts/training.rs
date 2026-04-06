@@ -414,8 +414,9 @@ fn training_form<'a>(window: &mut PistonWindow, e: &Event, app: &'a mut AppParam
             pause_switch.draw(&c, g, e, app);
         }
 
-        if (app.training_params.from_bool && app.training_params.from_model.is_some())
-            || (!app.training_params.from_bool && app.training_params.ets.is_some())
+        if app.training_params.name.len() > 0
+            && ((app.training_params.from_bool && app.training_params.from_model.is_some())
+            || (!app.training_params.from_bool && app.training_params.ets.is_some()))
         {
             train_button.draw(&c, g, e, app);
         }
@@ -476,8 +477,9 @@ fn training_form<'a>(window: &mut PistonWindow, e: &Event, app: &'a mut AppParam
     rounds_slider.handle_event(e, app);
     name_text_area.handle_event(e, app);
 
-    if (app.training_params.from_bool && app.training_params.from_model.is_some())
-        || (!app.training_params.from_bool && app.training_params.ets.is_some())
+    if app.training_params.name.len() > 0
+        && ((app.training_params.from_bool && app.training_params.from_model.is_some())
+        || (!app.training_params.from_bool && app.training_params.ets.is_some()))
     {
         train_button.handle_event(e, app);
     }
@@ -536,7 +538,7 @@ fn training_board(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
             app.agent
                 .as_ref()
                 .unwrap()
-                .snapshot(app.playground.as_ref().unwrap().get_score())
+                .snapshot(app.playground.as_ref().unwrap().get_score(), 's')
                 .unwrap();
             app.training_params.just_snapshoted = true;
         },

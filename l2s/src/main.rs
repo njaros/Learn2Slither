@@ -12,6 +12,9 @@ fn main() -> Void {
         .subcommand(Command::new("train").about("Train a new model.").args([
             arg!(-n --name <Name> "Name of the model.").required(true),
             arg!(-e --ets <Name> "Name of the ETS to use"),
+            arg!(-r --rounds <Usize> "Number of rounds for the training")
+                .required(true)
+                .value_parser(value_parser!(usize)),
         ]))
         .subcommand(
             Command::new("test").about("use a model to play").args([
@@ -47,7 +50,8 @@ fn main() -> Void {
                 .get_one::<String>("ets")
                 .unwrap_or(&String::from("jaja_v1"))
                 .clone();
-            train(name, ets)?
+            let rounds = *ctx.get_one::<usize>("rounds").unwrap();
+            train(name, ets, rounds)?
         }
         "test" => {
             let index = *ctx.get_one::<usize>("index").unwrap();
@@ -63,9 +67,9 @@ fn main() -> Void {
     Ok(())
 }
 
-fn train(name: String, ets_name: String) -> Void {
+fn train(name: String, ets_name: String, rounds: usize) -> Void {
     let mut agent = Agent::new(ets_name, name)?;
-    train_loop(&mut agent, 2500, true)?;
+    train_loop(&mut agent, rounds, true)?;
 
     Ok(())
 }
