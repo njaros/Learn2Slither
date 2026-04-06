@@ -1,12 +1,12 @@
 use std::time::Instant;
 
 use convenient_lib::Res;
-use interpretors::reward::reward_interpretor::RewardInterpretor;
 use piston_window::G2dTexture;
 use piston_window::graphics::glyph_cache::rusttype::GlyphCache;
 use piston_window::wgpu_graphics::{Texture, TextureContext};
 use playground::{Dir, PlayGround};
-use qlearning::{Agent, Model};
+use qlearning::agent::agent::{Agent, Model};
+use qlearning::reward::reward_interpretor::RewardInterpretor;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone)]

@@ -4,7 +4,6 @@ use crate::contexts::{
 };
 use convenient_lib::Res;
 use graphics::*;
-use interpretors::state::list_all_ets;
 use piston_components::components::{
     PistonComponent,
     buttons::{ButtonActionFromVal, ButtonStoreVal, MyButton, Style},
@@ -18,7 +17,7 @@ use piston_window::{
     *,
 };
 use playground::{Dir, PlayGround};
-use qlearning::{Agent, Model, train_loop};
+use qlearning::{agent::agent::{Agent, Model}, state::list_all_ets, train_loop};
 use rand::make_rng;
 use std::{
     path::Path,

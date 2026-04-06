@@ -7,7 +7,7 @@ use piston_components::components::switch::NamedSwitch;
 use piston_ctx::{Ctx, CtxValues, LeaderBoardItem, TestingParams};
 use piston_window::{graphics::Text, *};
 use playground::PlayGround;
-use qlearning::{Agent, Model};
+use qlearning::agent::agent::{Agent, Model};
 use rand::make_rng;
 use std::path::Path;
 use std::time::{Duration, Instant};
