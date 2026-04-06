@@ -1,22 +1,22 @@
 use piston::{Button, PressEvent};
-use piston_ctx::CtxValues;
 use piston_window::graphics::*;
 use piston_window::graphics::{Rectangle, Text, color};
 
+use crate::app_params::app_params::AppParams;
 use crate::components::PistonComponent;
 pub struct Switch {
     shapes: [f64; 4],
     current: bool,
-    store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut bool,
+    store_val: for<'a> fn(&'a mut AppParams) -> &'a mut bool,
 }
 
 impl Switch {
-    fn _cursor_in(&self, ctx: &CtxValues) -> bool {
+    fn _cursor_in(&self, app: &AppParams) -> bool {
         let l_border = self.shapes[0];
         let r_border = l_border + self.shapes[2];
         let u_border = self.shapes[1];
         let d_border = u_border + self.shapes[3];
-        match ctx.last_mouse_pos {
+        match app.last_mouse_pos {
             None => false,
             Some([pos_x, pos_y]) => {
                 pos_x > l_border && pos_x < r_border && pos_y > u_border && pos_y < d_border
@@ -27,7 +27,7 @@ impl Switch {
     pub fn new(
         pos: [f64; 2],
         current: bool,
-        store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut bool,
+        store_val: for<'a> fn(&'a mut AppParams) -> &'a mut bool,
     ) -> Self {
         Self {
             shapes: [pos[0], pos[1], 100., 50.],
@@ -43,7 +43,7 @@ impl PistonComponent for Switch {
         c: &piston_window::graphics::Context,
         g: &mut piston_window::wgpu_graphics::WgpuGraphics<'_>,
         _: &piston::Event,
-        _: &mut CtxValues,
+        _: &mut AppParams,
     ) {
         let rect_on = Rectangle::new(match self.current {
             true => color::GREEN,
@@ -77,12 +77,12 @@ impl PistonComponent for Switch {
         );
     }
 
-    fn handle_event<'a>(&mut self, e: &piston::Event, ctx: &'a mut CtxValues) {
+    fn handle_event<'a>(&mut self, e: &piston::Event, app: &'a mut AppParams) {
         if let Some(button) = e.press_args() {
             if button == Button::Mouse(piston::MouseButton::Left) {
-                match self._cursor_in(ctx) {
+                match self._cursor_in(app) {
                     false => {}
-                    true => *(self.store_val)(ctx) = !self.current,
+                    true => *(self.store_val)(app) = !self.current,
                 }
             }
         }
@@ -94,16 +94,16 @@ pub struct NamedSwitch {
     background_color: [f32; 4],
     name: String,
     current: bool,
-    store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut bool,
+    store_val: for<'a> fn(&'a mut AppParams) -> &'a mut bool,
 }
 
 impl NamedSwitch {
-    fn _cursor_in(&self, ctx: &CtxValues) -> bool {
+    fn _cursor_in(&self, app: &AppParams) -> bool {
         let l_border = self.shapes[0] + self.shapes[2] - 100.;
         let r_border = l_border + 100.;
         let u_border = self.shapes[1];
         let d_border = u_border + self.shapes[3];
-        match ctx.last_mouse_pos {
+        match app.last_mouse_pos {
             None => false,
             Some([pos_x, pos_y]) => {
                 pos_x > l_border && pos_x < r_border && pos_y > u_border && pos_y < d_border
@@ -117,7 +117,7 @@ impl NamedSwitch {
         background_color: [f32; 4],
         name: String,
         current: bool,
-        store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut bool,
+        store_val: for<'a> fn(&'a mut AppParams) -> &'a mut bool,
     ) -> Self {
         Self {
             shapes: [pos[0], pos[1], text_len + 100., 50.],
@@ -135,7 +135,7 @@ impl PistonComponent for NamedSwitch {
         c: &piston_window::graphics::Context,
         g: &mut piston_window::wgpu_graphics::WgpuGraphics<'_>,
         _: &piston::Event,
-        ctx: &mut CtxValues,
+        app: &mut AppParams,
     ) {
         let switch_shapes = [
             self.shapes[0] + self.shapes[2] - 100.,
@@ -156,7 +156,7 @@ impl PistonComponent for NamedSwitch {
         Text::new(32)
             .draw(
                 &self.name,
-                &mut ctx.glyphs,
+                &mut app.glyphs,
                 &c.draw_state,
                 c.transform.trans(self.shapes[0], self.shapes[1] + 36.),
                 g,
@@ -186,12 +186,12 @@ impl PistonComponent for NamedSwitch {
         );
     }
 
-    fn handle_event<'a>(&mut self, e: &piston::Event, ctx: &'a mut CtxValues) {
+    fn handle_event<'a>(&mut self, e: &piston::Event, app: &'a mut AppParams) {
         if let Some(button) = e.press_args() {
             if button == Button::Mouse(piston::MouseButton::Left) {
-                match self._cursor_in(ctx) {
+                match self._cursor_in(app) {
                     false => {}
-                    true => *(self.store_val)(ctx) = !self.current,
+                    true => *(self.store_val)(app) = !self.current,
                 }
             }
         }
@@ -203,20 +203,20 @@ pub struct NamedSwitchAction<U, V> {
     background_color: [f32; 4],
     name: String,
     current: bool,
-    store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut bool,
-    where_to_store_for_on: for<'a> fn(&'a mut CtxValues) -> &'a mut U,
-    what_to_store_for_on: fn(&mut CtxValues) -> U,
-    where_to_store_for_off: for<'a> fn(&'a mut CtxValues) -> &'a mut V,
-    what_to_store_for_off: fn(&mut CtxValues) -> V,
+    store_val: for<'a> fn(&'a mut AppParams) -> &'a mut bool,
+    where_to_store_for_on: for<'a> fn(&'a mut AppParams) -> &'a mut U,
+    what_to_store_for_on: fn(&mut AppParams) -> U,
+    where_to_store_for_off: for<'a> fn(&'a mut AppParams) -> &'a mut V,
+    what_to_store_for_off: fn(&mut AppParams) -> V,
 }
 
 impl<U, V> NamedSwitchAction<U, V> {
-    fn _cursor_in(&self, ctx: &CtxValues) -> bool {
+    fn _cursor_in(&self, app: &AppParams) -> bool {
         let l_border = self.shapes[0] + self.shapes[2] - 100.;
         let r_border = l_border + 100.;
         let u_border = self.shapes[1];
         let d_border = u_border + self.shapes[3];
-        match ctx.last_mouse_pos {
+        match app.last_mouse_pos {
             None => false,
             Some([pos_x, pos_y]) => {
                 pos_x > l_border && pos_x < r_border && pos_y > u_border && pos_y < d_border
@@ -230,11 +230,11 @@ impl<U, V> NamedSwitchAction<U, V> {
         background_color: [f32; 4],
         name: String,
         current: bool,
-        store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut bool,
-        where_to_store_for_on: for<'a> fn(&'a mut CtxValues) -> &'a mut U,
-        what_to_store_for_on: fn(&mut CtxValues) -> U,
-        where_to_store_for_off: for<'a> fn(&'a mut CtxValues) -> &'a mut V,
-        what_to_store_for_off: fn(&mut CtxValues) -> V,
+        store_val: for<'a> fn(&'a mut AppParams) -> &'a mut bool,
+        where_to_store_for_on: for<'a> fn(&'a mut AppParams) -> &'a mut U,
+        what_to_store_for_on: fn(&mut AppParams) -> U,
+        where_to_store_for_off: for<'a> fn(&'a mut AppParams) -> &'a mut V,
+        what_to_store_for_off: fn(&mut AppParams) -> V,
     ) -> Self {
         Self {
             shapes: [pos[0], pos[1], text_len + 100., 50.],
@@ -256,7 +256,7 @@ impl<U, V> PistonComponent for NamedSwitchAction<U, V> {
         c: &piston_window::graphics::Context,
         g: &mut piston_window::wgpu_graphics::WgpuGraphics<'_>,
         _: &piston::Event,
-        ctx: &mut CtxValues,
+        app: &mut AppParams,
     ) {
         let switch_shapes = [
             self.shapes[0] + self.shapes[2] - 100.,
@@ -277,7 +277,7 @@ impl<U, V> PistonComponent for NamedSwitchAction<U, V> {
         Text::new(32)
             .draw(
                 &self.name,
-                &mut ctx.glyphs,
+                &mut app.glyphs,
                 &c.draw_state,
                 c.transform.trans(self.shapes[0], self.shapes[1] + 36.),
                 g,
@@ -307,15 +307,15 @@ impl<U, V> PistonComponent for NamedSwitchAction<U, V> {
         );
     }
 
-    fn handle_event<'a>(&mut self, e: &piston::Event, ctx: &'a mut CtxValues) {
+    fn handle_event<'a>(&mut self, e: &piston::Event, app: &'a mut AppParams) {
         if let Some(button) = e.press_args() {
             if button == Button::Mouse(piston::MouseButton::Left) {
-                match self._cursor_in(ctx) {
+                match self._cursor_in(app) {
                     false => {}
                     true => {
-                        *(self.store_val)(ctx) = !self.current;
-                        *(self.where_to_store_for_on)(ctx) = (self.what_to_store_for_on)(ctx);
-                        *(self.where_to_store_for_off)(ctx) = (self.what_to_store_for_off)(ctx);
+                        *(self.store_val)(app) = !self.current;
+                        *(self.where_to_store_for_on)(app) = (self.what_to_store_for_on)(app);
+                        *(self.where_to_store_for_off)(app) = (self.what_to_store_for_off)(app);
                     }
                 }
             }

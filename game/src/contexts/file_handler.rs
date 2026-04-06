@@ -1,6 +1,6 @@
 use convenient_lib::{Res, Void};
-use piston_ctx::LeaderBoard;
-use qlearning::Model;
+use piston_components::app_params::app_params::LeaderBoard;
+use qlearning::agent::agent::Model;
 use serde_json::json;
 use std::fs;
 use std::fs::read_dir;

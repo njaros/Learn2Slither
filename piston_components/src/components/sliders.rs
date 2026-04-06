@@ -1,8 +1,7 @@
 use mathlib::lerp_usize;
-use piston_ctx::CtxValues;
 use piston_window::graphics::{Rectangle, color};
 
-use crate::components::PistonComponent;
+use crate::{app_params::app_params::AppParams, components::PistonComponent};
 
 pub struct Slider {
     min: usize,
@@ -10,16 +9,16 @@ pub struct Slider {
     current: usize,
     visual_shapes: [f64; 4],
     shapes: [f64; 4],
-    store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut usize,
+    store_val: for<'a> fn(&'a mut AppParams) -> &'a mut usize,
 }
 
 impl Slider {
-    fn _cursor_in(&self, ctx: &CtxValues) -> bool {
+    fn _cursor_in(&self, app: &AppParams) -> bool {
         let l_border = self.visual_shapes[0];
         let r_border = l_border + self.visual_shapes[2];
         let u_border = self.visual_shapes[1];
         let d_border = u_border + self.visual_shapes[3];
-        match ctx.last_mouse_pos {
+        match app.last_mouse_pos {
             None => false,
             Some([pos_x, pos_y]) => {
                 pos_x > l_border && pos_x < r_border && pos_y > u_border && pos_y < d_border
@@ -44,7 +43,7 @@ impl Slider {
         max: usize,
         current: usize,
         shapes: [f64; 4],
-        store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut usize,
+        store_val: for<'a> fn(&'a mut AppParams) -> &'a mut usize,
     ) -> Slider {
         assert!(
             current >= min && current <= max,
@@ -73,7 +72,7 @@ impl PistonComponent for Slider {
         c: &piston_window::graphics::Context,
         g: &mut piston_window::wgpu_graphics::WgpuGraphics<'_>,
         _: &piston::Event,
-        _: &mut CtxValues,
+        _: &mut AppParams,
     ) {
         let cur_x = self.shapes[0] - self.shapes[3] / 2.
             + (self.current as f64 - self.min as f64) / (self.max as f64 - self.min as f64)
@@ -89,12 +88,12 @@ impl PistonComponent for Slider {
         );
     }
 
-    fn handle_event<'a>(&mut self, _: &piston::Event, ctx: &'a mut CtxValues) {
-        if ctx.mouse_pressed {
-            match self._cursor_in(ctx) {
+    fn handle_event<'a>(&mut self, _: &piston::Event, app: &'a mut AppParams) {
+        if app.mouse_pressed {
+            match self._cursor_in(app) {
                 false => {}
                 true => {
-                    *(self.store_val)(ctx) = self._cursor_to_current(ctx.last_mouse_pos.unwrap()[0])
+                    *(self.store_val)(app) = self._cursor_to_current(app.last_mouse_pos.unwrap()[0])
                 }
             }
         }
@@ -107,16 +106,16 @@ pub struct SliderVertical {
     current: usize,
     visual_shapes: [f64; 4],
     shapes: [f64; 4],
-    store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut usize,
+    store_val: for<'a> fn(&'a mut AppParams) -> &'a mut usize,
 }
 
 impl SliderVertical {
-    fn _cursor_in(&self, ctx: &CtxValues) -> bool {
+    fn _cursor_in(&self, app: &AppParams) -> bool {
         let l_border = self.visual_shapes[0];
         let r_border = l_border + self.visual_shapes[2];
         let u_border = self.visual_shapes[1];
         let d_border = u_border + self.visual_shapes[3];
-        match ctx.last_mouse_pos {
+        match app.last_mouse_pos {
             None => false,
             Some([pos_x, pos_y]) => {
                 pos_x > l_border && pos_x < r_border && pos_y > u_border && pos_y < d_border
@@ -141,7 +140,7 @@ impl SliderVertical {
         max: usize,
         current: usize,
         shapes: [f64; 4],
-        store_val: for<'a> fn(&'a mut CtxValues) -> &'a mut usize,
+        store_val: for<'a> fn(&'a mut AppParams) -> &'a mut usize,
     ) -> Self {
         assert!(
             current >= min && current <= max,
@@ -170,7 +169,7 @@ impl PistonComponent for SliderVertical {
         c: &piston_window::graphics::Context,
         g: &mut piston_window::wgpu_graphics::WgpuGraphics<'_>,
         _: &piston::Event,
-        _: &mut CtxValues,
+        _: &mut AppParams,
     ) {
         let cur_y = self.shapes[1] - self.shapes[2] / 2.
             + (self.current as f64 - self.min as f64) / (self.max as f64 - self.min as f64)
@@ -186,12 +185,12 @@ impl PistonComponent for SliderVertical {
         );
     }
 
-    fn handle_event<'a>(&mut self, _: &piston::Event, ctx: &'a mut CtxValues) {
-        if ctx.mouse_pressed {
-            match self._cursor_in(ctx) {
+    fn handle_event<'a>(&mut self, _: &piston::Event, app: &'a mut AppParams) {
+        if app.mouse_pressed {
+            match self._cursor_in(app) {
                 false => {}
                 true => {
-                    *(self.store_val)(ctx) = self._cursor_to_current(ctx.last_mouse_pos.unwrap()[1])
+                    *(self.store_val)(app) = self._cursor_to_current(app.last_mouse_pos.unwrap()[1])
                 }
             }
         }

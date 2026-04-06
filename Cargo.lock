@@ -908,11 +908,9 @@ version = "0.1.0"
 dependencies = [
  "convenient_lib",
  "image",
- "interpretors",
  "itertools",
  "piston",
  "piston_components",
- "piston_ctx",
  "piston_window",
  "playground",
  "qlearning",
@@ -1175,15 +1173,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e9c13ae9d91148fcb4aab6654c4c2a7d02a15395ea9e23f65170f175f8b269ce"
 
 [[package]]
-name = "interpretors"
-version = "0.1.0"
-dependencies = [
- "convenient_lib",
- "mathlib",
- "playground",
-]
-
-[[package]]
 name = "is_terminal_polyfill"
 version = "1.70.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1308,7 +1297,6 @@ dependencies = [
  "clap",
  "console",
  "convenient_lib",
- "interpretors",
  "playground",
  "qlearning",
  "rand 0.10.0",
@@ -2033,18 +2021,8 @@ dependencies = [
 name = "piston_components"
 version = "0.1.0"
 dependencies = [
- "mathlib",
- "piston",
- "piston_ctx",
- "piston_window",
-]
-
-[[package]]
-name = "piston_ctx"
-version = "0.1.0"
-dependencies = [
  "convenient_lib",
- "interpretors",
+ "mathlib",
  "piston",
  "piston_window",
  "playground",
@@ -2257,7 +2235,6 @@ name = "qlearning"
 version = "0.1.0"
 dependencies = [
  "convenient_lib",
- "interpretors",
  "mathlib",
  "playground",
  "rand 0.10.0",

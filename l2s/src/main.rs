@@ -1,7 +1,8 @@
 use clap::{Command, arg, command, value_parser};
 use convenient_lib::Void;
 use playground::PlayGround;
-use qlearning::{Agent, train_loop};
+use qlearning::agent::agent::Agent;
+use qlearning::train_loop;
 use rand::make_rng;
 use std::thread::sleep;
 use std::time::Duration;

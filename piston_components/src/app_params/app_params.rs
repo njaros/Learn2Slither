@@ -1,12 +1,12 @@
 use std::time::Instant;
 
 use convenient_lib::Res;
-use interpretors::reward::reward_interpretor::RewardInterpretor;
 use piston_window::G2dTexture;
 use piston_window::graphics::glyph_cache::rusttype::GlyphCache;
 use piston_window::wgpu_graphics::{Texture, TextureContext};
 use playground::{Dir, PlayGround};
-use qlearning::{Agent, Model};
+use qlearning::agent::agent::{Agent, Model};
+use qlearning::reward::reward_interpretor::RewardInterpretor;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -21,7 +21,7 @@ pub struct LeaderBoard {
     pub leaderboard: Vec<LeaderBoardItem>,
 }
 
-pub enum Ctx {
+pub enum Route {
     Lobby,
     Train,
     Test,
@@ -122,13 +122,13 @@ impl TrainingParams {
     }
 }
 
-pub struct CtxValues<'a> {
+pub struct AppParams<'a> {
     // Caches
     pub glyphs: GlyphCache<'a, TextureContext, Texture>,
 
     // App navigation contexts
     pub logo: G2dTexture,
-    pub ctx: Ctx,
+    pub route: Route,
     pub mouse_pressed: bool,
     pub lshift_pressed: bool,
     pub last_mouse_pos: Option<[f64; 2]>,

@@ -1,13 +1,13 @@
 use convenient_lib::Res;
 use graphics::*;
+use piston_components::app_params::app_params::{AppParams, LeaderBoardItem, Route, TestingParams};
 use piston_components::components::PistonComponent;
 use piston_components::components::buttons::{ButtonActionFromVal, MyButton, Style};
 use piston_components::components::sliders::{Slider, SliderVertical};
 use piston_components::components::switch::NamedSwitch;
-use piston_ctx::{Ctx, CtxValues, LeaderBoardItem, TestingParams};
 use piston_window::{graphics::Text, *};
 use playground::PlayGround;
-use qlearning::{Agent, Model};
+use qlearning::agent::agent::{Agent, Model};
 use rand::make_rng;
 use std::path::Path;
 use std::time::{Duration, Instant};
@@ -17,15 +17,15 @@ use crate::contexts::file_handler::{get_model, get_model_bests};
 
 const MODEL_PATH: &str = "models";
 
-fn test_form(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
+fn test_form(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
     let mut back_button = MyButton::new(
         Style::RED,
         [772., 650., 200., 75.],
         "      CANCEL".into(),
-        |ctx| {
-            ctx.ctx = Ctx::Lobby;
-            ctx.selected_height = 10;
-            ctx.selected_width = 10;
+        |app| {
+            app.route = Route::Lobby;
+            app.selected_height = 10;
+            app.selected_width = 10;
         },
     );
 
@@ -33,24 +33,24 @@ fn test_form(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
         Style::GREEN,
         [532., 650., 200., 75.],
         "        TEST".into(),
-        |ctx| {
-            ctx.agent = match &ctx.testing_params.model {
+        |app| {
+            app.agent = match &app.testing_params.model {
                 None => None,
-                Some(m) => Some(Agent::from_model(&ctx.testing_params.model_name, m).unwrap()),
+                Some(m) => Some(Agent::from_model(&app.testing_params.model_name, m).unwrap()),
             }
         },
     );
 
-    let mut slider_width = Slider::new(5, 50, ctx.selected_width, [75., 180., 300., 40.], |ctx| {
-        &mut ctx.selected_width
+    let mut slider_width = Slider::new(5, 50, app.selected_width, [75., 180., 300., 40.], |app| {
+        &mut app.selected_width
     });
 
     let mut slider_height =
-        Slider::new(5, 50, ctx.selected_height, [75., 330., 300., 40.], |ctx| {
-            &mut ctx.selected_height
+        Slider::new(5, 50, app.selected_height, [75., 330., 300., 40.], |app| {
+            &mut app.selected_height
         });
 
-    let mut models_buttons = match &ctx.testing_params.model_names {
+    let mut models_buttons = match &app.testing_params.model_names {
         Err(_) => Vec::<ButtonActionFromVal<String, Res<Vec<String>>>>::new(),
         Ok(names) => names
             .iter()
@@ -61,12 +61,12 @@ fn test_form(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
                     [650., 200. + 75. * idx as f64, 250., 60.],
                     String::from("     ") + &model_name.clone(),
                     model_name.clone(),
-                    |ctx| &mut ctx.testing_params.model_name,
-                    |ctx| &mut ctx.testing_params.model_idx_list,
-                    |ctx| {
-                        ctx.testing_params.model = None;
-                        ctx.testing_params.model_idx = "none".into();
-                        get_model_bests(&Path::new(MODEL_PATH).join(&ctx.testing_params.model_name))
+                    |app| &mut app.testing_params.model_name,
+                    |app| &mut app.testing_params.model_idx_list,
+                    |app| {
+                        app.testing_params.model = None;
+                        app.testing_params.model_idx = "none".into();
+                        get_model_bests(&Path::new(MODEL_PATH).join(&app.testing_params.model_name))
                     },
                 )
             })
@@ -75,7 +75,7 @@ fn test_form(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
 
     let mut models_overflow_y = SliderVertical::new(
         0,
-        match &ctx.testing_params.model_names {
+        match &app.testing_params.model_names {
             Err(_) => 0,
             Ok(list) => match list.len() > 3 {
                 true => list.len() - 3,
@@ -83,8 +83,8 @@ fn test_form(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
             },
         },
         std::cmp::min(
-            ctx.testing_params.model_cursor,
-            match &ctx.testing_params.model_names {
+            app.testing_params.model_cursor,
+            match &app.testing_params.model_names {
                 Err(_) => 0,
                 Ok(list) => match list.len() > 3 {
                     true => list.len() - 3,
@@ -93,10 +93,10 @@ fn test_form(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
             },
         ),
         [950., 200., 30., 210.],
-        |ctx| &mut ctx.testing_params.model_cursor,
+        |app| &mut app.testing_params.model_cursor,
     );
 
-    let mut bests_buttons = match &ctx.testing_params.model_idx_list {
+    let mut bests_buttons = match &app.testing_params.model_idx_list {
         Err(_) => Vec::<ButtonActionFromVal<String, Option<Model>>>::new(),
         Ok(names) => names
             .iter()
@@ -107,14 +107,14 @@ fn test_form(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
                     [650. + 75. * idx as f64, 450., 50., 50.],
                     String::from("  ") + &best_idx.clone(),
                     best_idx.clone(),
-                    |ctx| &mut ctx.testing_params.model_idx,
-                    |ctx| &mut ctx.testing_params.model,
-                    |ctx| {
+                    |app| &mut app.testing_params.model_idx,
+                    |app| &mut app.testing_params.model,
+                    |app| {
                         Some(
                             get_model(
                                 &mut Path::new(MODEL_PATH)
-                                    .join(&ctx.testing_params.model_name)
-                                    .join(&ctx.testing_params.model_idx),
+                                    .join(&app.testing_params.model_name)
+                                    .join(&app.testing_params.model_idx),
                             )
                             .unwrap(),
                         )
@@ -126,7 +126,7 @@ fn test_form(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
 
     let mut bests_buttons_overflow_x = Slider::new(
         0,
-        match &ctx.testing_params.model_idx_list {
+        match &app.testing_params.model_idx_list {
             Err(_) => 0,
             Ok(list) => match list.len() > 4 {
                 true => list.len() - 4,
@@ -134,8 +134,8 @@ fn test_form(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
             },
         },
         std::cmp::min(
-            ctx.testing_params.model_idx_cursor,
-            match &ctx.testing_params.model_idx_list {
+            app.testing_params.model_idx_cursor,
+            match &app.testing_params.model_idx_list {
                 Err(_) => 0,
                 Ok(list) => match list.len() > 4 {
                     true => list.len() - 4,
@@ -144,7 +144,7 @@ fn test_form(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
             },
         ),
         [655., 520., 265., 30.],
-        |ctx| &mut ctx.testing_params.model_idx_cursor,
+        |app| &mut app.testing_params.model_idx_cursor,
     );
 
     window.draw_2d(e, |c, g, _| {
@@ -154,18 +154,18 @@ fn test_form(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
         Text::new(28)
             .draw(
                 "Select the width (5 to 50)",
-                &mut ctx.glyphs,
+                &mut app.glyphs,
                 &c.draw_state,
                 transform,
                 g,
             )
             .unwrap();
-        slider_width.draw(&c, g, e, ctx);
+        slider_width.draw(&c, g, e, app);
         let transform = c.transform.trans(385., 208.);
         Text::new(32)
             .draw(
-                &ctx.selected_width.to_string(),
-                &mut ctx.glyphs,
+                &app.selected_width.to_string(),
+                &mut app.glyphs,
                 &c.draw_state,
                 transform,
                 g,
@@ -176,18 +176,18 @@ fn test_form(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
         Text::new(28)
             .draw(
                 "Select the height (5 to 50)",
-                &mut ctx.glyphs,
+                &mut app.glyphs,
                 &c.draw_state,
                 transform,
                 g,
             )
             .unwrap();
-        slider_height.draw(&c, g, e, ctx);
+        slider_height.draw(&c, g, e, app);
         let transform = c.transform.trans(385., 360.);
         Text::new(32)
             .draw(
-                &ctx.selected_height.to_string(),
-                &mut ctx.glyphs,
+                &app.selected_height.to_string(),
+                &mut app.glyphs,
                 &c.draw_state,
                 transform,
                 g,
@@ -197,7 +197,7 @@ fn test_form(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
         Text::new(32)
             .draw(
                 "Select a model to test",
-                &mut ctx.glyphs,
+                &mut app.glyphs,
                 &c.draw_state,
                 c.transform.trans(650., 160.),
                 g,
@@ -206,41 +206,41 @@ fn test_form(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
 
         models_buttons
             .iter()
-            .skip(ctx.testing_params.model_cursor)
+            .skip(app.testing_params.model_cursor)
             .take(3)
             .enumerate()
-            .for_each(|(idx, m)| m.draw_pos([650., 200. + 75. * idx as f64], &c, g, e, ctx));
+            .for_each(|(idx, m)| m.draw_pos([650., 200. + 75. * idx as f64], &c, g, e, app));
 
-        match &ctx.testing_params.model_names {
+        match &app.testing_params.model_names {
             Err(_) => {}
             Ok(list) => match list.len() > 3 {
-                true => models_overflow_y.draw(&c, g, e, ctx),
+                true => models_overflow_y.draw(&c, g, e, app),
                 false => {}
             },
         };
 
         bests_buttons
             .iter()
-            .skip(ctx.testing_params.model_idx_cursor)
+            .skip(app.testing_params.model_idx_cursor)
             .take(4)
             .enumerate()
-            .for_each(|(idx, m)| m.draw_pos([650. + 75. * idx as f64, 450.], &c, g, e, ctx));
+            .for_each(|(idx, m)| m.draw_pos([650. + 75. * idx as f64, 450.], &c, g, e, app));
 
-        match &ctx.testing_params.model_idx_list {
+        match &app.testing_params.model_idx_list {
             Err(_) => {}
             Ok(list) => match list.len() > 4 {
-                true => bests_buttons_overflow_x.draw(&c, g, e, ctx),
+                true => bests_buttons_overflow_x.draw(&c, g, e, app),
                 false => {}
             },
         };
 
-        match &ctx.testing_params.model {
+        match &app.testing_params.model {
             None => {}
             Some(m) => {
                 Text::new(32)
                     .draw(
                         &format!("score reached: {}", m.score),
-                        &mut ctx.glyphs,
+                        &mut app.glyphs,
                         &c.draw_state,
                         c.transform.trans(670., 585.),
                         g,
@@ -249,7 +249,7 @@ fn test_form(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
                 Text::new(32)
                     .draw(
                         &format!("from ets: {}", m.ets_name),
-                        &mut ctx.glyphs,
+                        &mut app.glyphs,
                         &c.draw_state,
                         c.transform.trans(670., 625.),
                         g,
@@ -258,71 +258,71 @@ fn test_form(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
             }
         }
 
-        if ctx.testing_params.model.is_some() {
-            test_button.draw(&c, g, e, ctx);
+        if app.testing_params.model.is_some() {
+            test_button.draw(&c, g, e, app);
         }
-        back_button.draw(&c, g, e, ctx);
+        back_button.draw(&c, g, e, app);
     });
 
-    slider_width.handle_event(e, ctx);
-    slider_height.handle_event(e, ctx);
+    slider_width.handle_event(e, app);
+    slider_height.handle_event(e, app);
 
-    match &ctx.testing_params.model_names {
+    match &app.testing_params.model_names {
         Err(_) => {}
         Ok(list) => match list.len() > 3 {
-            true => models_overflow_y.handle_event(e, ctx),
+            true => models_overflow_y.handle_event(e, app),
             false => {}
         },
     };
 
     models_buttons
         .iter_mut()
-        .skip(ctx.testing_params.model_cursor)
+        .skip(app.testing_params.model_cursor)
         .take(3)
         .enumerate()
-        .for_each(|(idx, m)| m.handle_event_pos([650., 200. + 75. * idx as f64], e, ctx));
+        .for_each(|(idx, m)| m.handle_event_pos([650., 200. + 75. * idx as f64], e, app));
 
-    match &ctx.testing_params.model_idx_list {
+    match &app.testing_params.model_idx_list {
         Err(_) => {}
         Ok(list) => match list.len() > 4 {
-            true => bests_buttons_overflow_x.handle_event(e, ctx),
+            true => bests_buttons_overflow_x.handle_event(e, app),
             false => {}
         },
     };
 
     bests_buttons
         .iter_mut()
-        .skip(ctx.testing_params.model_idx_cursor)
+        .skip(app.testing_params.model_idx_cursor)
         .take(4)
         .enumerate()
-        .for_each(|(idx, m)| m.handle_event_pos([650. + 75. * idx as f64, 450.], e, ctx));
+        .for_each(|(idx, m)| m.handle_event_pos([650. + 75. * idx as f64, 450.], e, app));
 
-    if ctx.testing_params.model.is_some() {
-        test_button.handle_event(e, ctx);
+    if app.testing_params.model.is_some() {
+        test_button.handle_event(e, app);
     }
-    back_button.handle_event(e, ctx);
+    back_button.handle_event(e, app);
 
     if let Some(button) = e.press_args() {
         if button == Button::Keyboard(Key::Escape) {
-            ctx.ctx = Ctx::Lobby;
-            ctx.selected_height = 10;
-            ctx.selected_width = 10;
+            app.route = Route::Lobby;
+            app.selected_height = 10;
+            app.selected_width = 10;
         }
     }
 }
 
-fn testing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
+fn testing_board(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
     let mut back_button = MyButton::new(
         Style::RED,
         [772., 650., 200., 75.],
         "       HOME".into(),
-        |ctx| {
-            ctx.ctx = Ctx::Lobby;
-            ctx.agent = None;
-            ctx.playground = None;
-            ctx.selected_height = 10;
-            ctx.selected_width = 10;
-            ctx.testing_params = TestingParams::new() // reset params
+        |app| {
+            app.route = Route::Lobby;
+            app.agent = None;
+            app.playground = None;
+            app.selected_height = 10;
+            app.selected_width = 10;
+            app.testing_params = TestingParams::new() // reset params
         },
     );
 
@@ -331,8 +331,8 @@ fn testing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
         150.,
         color::CYAN,
         "    View".into(),
-        ctx.testing_params.snake_view,
-        |ctx| &mut ctx.testing_params.snake_view,
+        app.testing_params.snake_view,
+        |app| &mut app.testing_params.snake_view,
     );
 
     let mut pause_switch = NamedSwitch::new(
@@ -340,8 +340,8 @@ fn testing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
         100.,
         color::CYAN,
         " Pause".into(),
-        ctx.testing_params.pause,
-        |ctx| &mut ctx.testing_params.pause,
+        app.testing_params.pause,
+        |app| &mut app.testing_params.pause,
     );
 
     let mut infinite_loop_switch = NamedSwitch::new(
@@ -349,31 +349,31 @@ fn testing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
         150.,
         color::CYAN,
         "  Infinite".into(),
-        ctx.testing_params.infinite_loop,
-        |ctx| &mut ctx.testing_params.infinite_loop,
+        app.testing_params.infinite_loop,
+        |app| &mut app.testing_params.infinite_loop,
     );
 
     let mut next_step_button = MyButton::new(
         Style::GREEN,
         [930., 145., 80., 50.],
         " Next".into(),
-        |ctx| ctx.testing_params.next_step = true,
+        |app| app.testing_params.next_step = true,
     );
 
     let mut speed_slider = Slider::new(
         0,
         1000,
-        ctx.testing_params.speed_time,
+        app.testing_params.speed_time,
         [820., 275., 130., 40.],
-        |ctx| &mut ctx.testing_params.speed_time,
+        |app| &mut app.testing_params.speed_time,
     );
 
     window.draw_2d(e, |c, g, _| {
         clear([0.8, 0.8, 0.8, 1.0], g);
 
         let board = Board::new(
-            &ctx.playground.as_ref().unwrap(),
-            ctx.testing_params.snake_view,
+            &app.playground.as_ref().unwrap(),
+            app.testing_params.snake_view,
         );
 
         board.draw(&c, g);
@@ -388,36 +388,36 @@ fn testing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
 
         Text::new_color(color::WHITE, 28)
             .draw(
-                &format!("On testing: {}", ctx.testing_params.model_name),
-                &mut ctx.glyphs,
+                &format!("On testing: {}", app.testing_params.model_name),
+                &mut app.glyphs,
                 &c.draw_state,
                 c.transform.trans(740., 45.),
                 g,
             )
             .unwrap();
 
-        pause_switch.draw(&c, g, e, ctx);
-        infinite_loop_switch.draw(&c, g, e, ctx);
+        pause_switch.draw(&c, g, e, app);
+        infinite_loop_switch.draw(&c, g, e, app);
 
-        if ctx.testing_params.pause {
-            next_step_button.draw(&c, g, e, ctx);
+        if app.testing_params.pause {
+            next_step_button.draw(&c, g, e, app);
         }
 
-        view_switch.draw(&c, g, e, ctx);
+        view_switch.draw(&c, g, e, app);
         Text::new(28)
             .draw(
                 " Speed",
-                &mut ctx.glyphs,
+                &mut app.glyphs,
                 &c.draw_state,
                 c.transform.trans(720., 305.),
                 g,
             )
             .unwrap();
-        speed_slider.draw(&c, g, e, ctx);
+        speed_slider.draw(&c, g, e, app);
         Text::new(28)
             .draw(
-                &ctx.testing_params.speed_time.to_string(),
-                &mut ctx.glyphs,
+                &app.testing_params.speed_time.to_string(),
+                &mut app.glyphs,
                 &c.draw_state,
                 c.transform.trans(960., 305.),
                 g,
@@ -435,9 +435,9 @@ fn testing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
             .draw(
                 &format!(
                     "current score: {}",
-                    ctx.playground.as_ref().unwrap().get_score()
+                    app.playground.as_ref().unwrap().get_score()
                 ),
-                &mut ctx.glyphs,
+                &mut app.glyphs,
                 &c.draw_state,
                 c.transform.trans(722., 356.),
                 g,
@@ -452,14 +452,14 @@ fn testing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
         Text::new_color(color::WHITE, 16)
             .draw(
                 &"LeaderBoard (for 10*10 maps only):",
-                &mut ctx.glyphs,
+                &mut app.glyphs,
                 &c.draw_state,
                 c.transform.trans(725., 395.),
                 g,
             )
             .unwrap();
 
-        ctx.leaderboard
+        app.leaderboard
             .leaderboard
             .iter()
             .enumerate()
@@ -473,7 +473,7 @@ fn testing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
                             item.model_name,
                             item.ets_name
                         ),
-                        &mut ctx.glyphs,
+                        &mut app.glyphs,
                         &c.draw_state,
                         c.transform.trans(740., 425. + (20. * idx as f64)),
                         g,
@@ -481,50 +481,50 @@ fn testing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
                     .unwrap();
             });
 
-        back_button.draw(&c, g, e, ctx);
+        back_button.draw(&c, g, e, app);
     });
 
-    let playground = ctx.playground.as_mut().unwrap();
-    let agent = ctx.agent.as_mut().unwrap();
+    let playground = app.playground.as_mut().unwrap();
+    let agent = app.agent.as_mut().unwrap();
 
-    if match ctx.testing_params.pause {
+    if match app.testing_params.pause {
         false => {
-            ctx.last_training_frame.elapsed()
-                > Duration::from_millis(ctx.testing_params.speed_time as u64)
+            app.last_training_frame.elapsed()
+                > Duration::from_millis(app.testing_params.speed_time as u64)
         }
-        true => ctx.testing_params.next_step,
+        true => app.testing_params.next_step,
     } {
-        ctx.last_training_frame = Instant::now();
-        ctx.testing_params.next_step = false;
+        app.last_training_frame = Instant::now();
+        app.testing_params.next_step = false;
         if playground.is_alive() {
             let env = &playground.snake_view();
             let state = agent.ets.env_to_state(env);
             let dir = agent.play(state);
             playground.next(dir);
-            if !playground.is_alive() && !ctx.testing_params.infinite_loop {
-                ctx.testing_params.pause = true;
+            if !playground.is_alive() && !app.testing_params.infinite_loop {
+                app.testing_params.pause = true;
             }
         } else {
-            if ctx.selected_height == 10 && ctx.selected_width == 10 {
-                if ctx.leaderboard.leaderboard.len() < 10 {
-                    ctx.leaderboard.leaderboard.push(LeaderBoardItem {
+            if app.selected_height == 10 && app.selected_width == 10 {
+                if app.leaderboard.leaderboard.len() < 10 {
+                    app.leaderboard.leaderboard.push(LeaderBoardItem {
                         score: playground.get_score(),
-                        model_name: ctx.agent.as_ref().unwrap().name.clone(),
-                        ets_name: ctx.agent.as_ref().unwrap().ets.get_name(),
+                        model_name: app.agent.as_ref().unwrap().name.clone(),
+                        ets_name: app.agent.as_ref().unwrap().ets.get_name(),
                     });
-                    ctx.leaderboard
+                    app.leaderboard
                         .leaderboard
                         .sort_by(|a, b| b.score.cmp(&a.score));
                 } else {
-                    match ctx.leaderboard.leaderboard[9].score < playground.get_score() {
+                    match app.leaderboard.leaderboard[9].score < playground.get_score() {
                         true => {
-                            ctx.leaderboard.leaderboard.remove(9);
-                            ctx.leaderboard.leaderboard.push(LeaderBoardItem {
+                            app.leaderboard.leaderboard.remove(9);
+                            app.leaderboard.leaderboard.push(LeaderBoardItem {
                                 score: playground.get_score(),
-                                model_name: ctx.agent.as_ref().unwrap().name.clone(),
-                                ets_name: ctx.agent.as_ref().unwrap().ets.get_name(),
+                                model_name: app.agent.as_ref().unwrap().name.clone(),
+                                ets_name: app.agent.as_ref().unwrap().ets.get_name(),
                             });
-                            ctx.leaderboard
+                            app.leaderboard
                                 .leaderboard
                                 .sort_by(|a, b| b.score.cmp(&a.score));
                         }
@@ -532,70 +532,70 @@ fn testing_board(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
                     }
                 }
             }
-            ctx.playground = Some(PlayGround::new(
-                ctx.selected_height,
-                ctx.selected_width,
+            app.playground = Some(PlayGround::new(
+                app.selected_height,
+                app.selected_width,
                 make_rng(),
             ));
         }
     }
 
-    pause_switch.handle_event(e, ctx);
-    if ctx.testing_params.pause {
-        next_step_button.handle_event(e, ctx);
+    pause_switch.handle_event(e, app);
+    if app.testing_params.pause {
+        next_step_button.handle_event(e, app);
     }
-    speed_slider.handle_event(e, ctx);
-    back_button.handle_event(e, ctx);
-    view_switch.handle_event(e, ctx);
-    infinite_loop_switch.handle_event(e, ctx);
+    speed_slider.handle_event(e, app);
+    back_button.handle_event(e, app);
+    view_switch.handle_event(e, app);
+    infinite_loop_switch.handle_event(e, app);
 
     if let Some(button) = e.press_args() {
         if button == Button::Keyboard(Key::Space) {
-            ctx.testing_params.pause = !ctx.testing_params.pause;
+            app.testing_params.pause = !app.testing_params.pause;
         } else if button == Button::Keyboard(Key::Down) || button == Button::Keyboard(Key::Right) {
-            ctx.testing_params.speed_time = std::cmp::min(
+            app.testing_params.speed_time = std::cmp::min(
                 1000,
-                match ctx.testing_params.speed_time {
+                match app.testing_params.speed_time {
                     0 => 1,
-                    _ => ctx.testing_params.speed_time * 2,
+                    _ => app.testing_params.speed_time * 2,
                 },
             )
         } else if button == Button::Keyboard(Key::Up) || button == Button::Keyboard(Key::Left) {
-            ctx.testing_params.speed_time = match ctx.testing_params.speed_time {
+            app.testing_params.speed_time = match app.testing_params.speed_time {
                 1 => 0,
-                _ => ctx.testing_params.speed_time / 2,
+                _ => app.testing_params.speed_time / 2,
             }
         } else if button == Button::Keyboard(Key::V) {
-            ctx.testing_params.snake_view = !ctx.testing_params.snake_view;
-        } else if ctx.testing_params.pause
+            app.testing_params.snake_view = !app.testing_params.snake_view;
+        } else if app.testing_params.pause
             && (button == Button::Keyboard(Key::N)
                 || button == Button::Keyboard(Key::Return)
                 || button == Button::Keyboard(Key::Return2))
         {
-            ctx.testing_params.next_step = true;
+            app.testing_params.next_step = true;
         } else if button == Button::Keyboard(Key::Escape) {
-            ctx.ctx = Ctx::Lobby;
-            ctx.agent = None;
-            ctx.playground = None;
-            ctx.selected_height = 10;
-            ctx.selected_width = 10;
-            ctx.testing_params = TestingParams::new();
+            app.route = Route::Lobby;
+            app.agent = None;
+            app.playground = None;
+            app.selected_height = 10;
+            app.selected_width = 10;
+            app.testing_params = TestingParams::new();
         }
     }
 }
 
-pub fn testing_route(window: &mut PistonWindow, e: &Event, ctx: &mut CtxValues) {
-    match ctx.agent {
-        Some(_) => match ctx.playground {
-            Some(_) => testing_board(window, e, ctx),
+pub fn testing_route(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
+    match app.agent {
+        Some(_) => match app.playground {
+            Some(_) => testing_board(window, e, app),
             None => {
-                ctx.playground = Some(PlayGround::new(
-                    ctx.selected_height,
-                    ctx.selected_width,
+                app.playground = Some(PlayGround::new(
+                    app.selected_height,
+                    app.selected_width,
                     make_rng(),
                 ))
             }
         },
-        None => test_form(window, e, ctx),
+        None => test_form(window, e, app),
     }
 }
