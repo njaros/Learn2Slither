@@ -23,7 +23,7 @@ This snake as some painful rules:
 
 # Other binaries #
 
-'play' binarie is here to show on defense that the playground effectively returns the good output, and proove the code is not cheating.
+'play' binary is here to show on defense that the playground effectively returns the good output, and proove the code is not cheating.
 
 'l2s' is the CLI used for development. And is not fully implemented...
 
