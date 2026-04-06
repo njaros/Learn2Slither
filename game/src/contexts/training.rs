@@ -58,7 +58,7 @@ fn training_form<'a>(window: &mut PistonWindow, e: &Event, app: &'a mut AppParam
             app.agent = match app.training_params.from_bool {
                 true => match &app.training_params.from_model {
                     None => None,
-                    Some(m) => Some(Agent::from_model(&app.training_params.name, m).unwrap()),
+                    Some(m) => Some(Agent::from_model(Some(&app.training_params.name), m).unwrap()),
                 },
                 false => match &app.training_params.ets {
                     None => None,
@@ -250,7 +250,7 @@ fn training_form<'a>(window: &mut PistonWindow, e: &Event, app: &'a mut AppParam
 
     let mut rounds_slider = Slider::new(
         1,
-        5000,
+        100000,
         app.training_params.rounds,
         [350., 500., 150., 50.],
         |app| &mut app.training_params.rounds,
@@ -754,8 +754,8 @@ fn training_board(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
                 if app.training_params.current_round == app.training_params.rounds {
                     app.training_params.train_finished = true;
                 } else {
-                    agent.reduce_exploration_by(1. / (0.8 * app.training_params.rounds as f64));
-                    agent.increase_discount_factor_by(0.75 / app.training_params.rounds as f64);
+                    agent.reduce_exploration_by(5. / (8. * app.training_params.rounds as f64));
+                    agent.increase_discount_factor_by(1. / app.training_params.rounds as f64);
                     app.playground = Some(PlayGround::new(10, 10, make_rng()));
                     app.training_params
                         .rewarder
@@ -832,7 +832,7 @@ fn train_view(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
         train_loop(
             &mut app.agent.as_mut().unwrap(),
             app.training_params.rounds,
-            false,
+            true,
         )
         .unwrap();
     }

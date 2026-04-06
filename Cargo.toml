@@ -3,5 +3,5 @@ resolver = "2"
 members = ["convenient_lib", "game", "l2s", "mathlib", "play", "playground", "qlearning", "trie", "piston_components"]
 
 [workspace.package]
-version = "0.1.0"
-depscription = "pouet !"
+version = "1.0.0"
+depscription = "Train your snake !"

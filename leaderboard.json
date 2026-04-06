@@ -22,6 +22,11 @@
     },
     {
       "ets_name": "jaja_v1",
+      "model_name": "no_nam2",
+      "score": 51
+    },
+    {
+      "ets_name": "jaja_v1",
       "model_name": "test3",
       "score": 48
     },
@@ -42,13 +47,8 @@
     },
     {
       "ets_name": "jaja_v1",
-      "model_name": "test3",
-      "score": 46
-    },
-    {
-      "ets_name": "jaja_v1",
-      "model_name": "test3",
-      "score": 45
+      "model_name": "no_nam2",
+      "score": 47
     }
   ]
 }

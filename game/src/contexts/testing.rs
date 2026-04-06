@@ -36,7 +36,7 @@ fn test_form(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
         |app| {
             app.agent = match &app.testing_params.model {
                 None => None,
-                Some(m) => Some(Agent::from_model(&app.testing_params.model_name, m).unwrap()),
+                Some(m) => Some(Agent::from_model(None, m).unwrap()),
             }
         },
     );

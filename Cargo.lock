@@ -498,7 +498,7 @@ dependencies = [
 
 [[package]]
 name = "convenient_lib"
-version = "0.1.0"
+version = "1.0.0"
 
 [[package]]
 name = "core-foundation"
@@ -904,7 +904,7 @@ dependencies = [
 
 [[package]]
 name = "game"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "convenient_lib",
  "image",
@@ -1292,7 +1292,7 @@ checksum = "e2db585e1d738fc771bf08a151420d3ed193d9d895a36df7f6f8a9456b911ddc"
 
 [[package]]
 name = "l2s"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "clap",
  "console",
@@ -1411,7 +1411,7 @@ dependencies = [
 
 [[package]]
 name = "mathlib"
-version = "0.1.0"
+version = "1.0.0"
 
 [[package]]
 name = "maybe-rayon"
@@ -2019,7 +2019,7 @@ dependencies = [
 
 [[package]]
 name = "piston_components"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "convenient_lib",
  "mathlib",
@@ -2104,7 +2104,7 @@ checksum = "b4596b6d070b27117e987119b4dac604f3c58cfb0b191112e24771b2faeac1a6"
 
 [[package]]
 name = "play"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "playground",
  "rand 0.10.0",
@@ -2114,7 +2114,7 @@ dependencies = [
 
 [[package]]
 name = "playground"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "itertools",
  "rand 0.10.0",
@@ -2232,7 +2232,7 @@ checksum = "b5a041e753da8b807c9255f28de81879c78c876392ff2469cde94799b2896b9d"
 
 [[package]]
 name = "qlearning"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "convenient_lib",
  "mathlib",
@@ -2896,7 +2896,7 @@ checksum = "db97caf9d906fbde555dd62fa95ddba9eecfd14cb388e4f491a66d74cd5fb79a"
 
 [[package]]
 name = "trie"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "playground",
 ]

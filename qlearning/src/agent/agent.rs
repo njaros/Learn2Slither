@@ -26,8 +26,8 @@ pub struct Agent {
     best_models: Vec<(QTable, u32)>,
     learning_rate: f64,
     max_discount_factor: f64,
-    discount_factor: f64,
-    exploration_rate: f64,
+    pub discount_factor: f64,
+    pub exploration_rate: f64,
     seed: StdRng,
     actions: [Dir; 4],
 }
@@ -68,25 +68,40 @@ impl Agent {
             best_models: vec![],
             learning_rate: 0.1,
             max_discount_factor: 0.9,
-            discount_factor: 0.9,
-            exploration_rate: 0.,
+            discount_factor: match new_name.is_some() {
+                false => 0.9,
+                true => 0.,
+            },
+            exploration_rate: match new_name.is_some() {
+                false => 0.,
+                true => 0.5,
+            },
             seed: make_rng(),
             actions: [Dir::Up, Dir::Right, Dir::Down, Dir::Left],
         })
     }
 
-    pub fn from_model(new_name: &String, model: &Model) -> Res<Self> {
+    pub fn from_model(new_name: Option<&String>, model: &Model) -> Res<Self> {
         let q_table = &model.model;
         let ets_name = &model.ets_name;
         Ok(Agent {
-            name: new_name.clone(),
+            name: match new_name {
+                None => model.name.clone(),
+                Some(name) => name.clone(),
+            },
             ets: ETSFactory::create(ets_name.clone())?,
             q_table: q_table.clone(),
             best_models: vec![],
             learning_rate: 0.1,
             max_discount_factor: 0.9,
-            discount_factor: 0.9,
-            exploration_rate: 0.,
+            discount_factor: match new_name.is_some() {
+                false => 0.9,
+                true => 0.,
+            },
+            exploration_rate: match new_name.is_some() {
+                false => 0.,
+                true => 0.5,
+            },
             seed: make_rng(),
             actions: [Dir::Up, Dir::Right, Dir::Down, Dir::Left],
         })

@@ -5,7 +5,7 @@ version.workspace = true
 depscription.workspace = true
 
 [dependencies]
-playground = { version = "0.1.0", path = "../playground" }
+playground = { version = "1.0.0", path = "../playground" }
 rand = "0.10.0"
 termios = "0.3.3"
-trie = { version = "0.1.0", path = "../trie" }
+trie = { version = "1.0.0", path = "../trie" }

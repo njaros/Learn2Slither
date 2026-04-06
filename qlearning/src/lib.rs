@@ -17,7 +17,7 @@ fn dir_to_usize(dir: Dir) -> usize {
     }
 }
 
-pub fn train_loop(agent: &mut Agent, rounds: usize, from_cli: bool) -> Void {
+pub fn train_loop(agent: &mut Agent, rounds: usize, display_rounds: bool) -> Void {
     let mut reward_interpretor = RewardInterpretor::new();
     let mut best_score = 0u32;
 
@@ -43,15 +43,15 @@ pub fn train_loop(agent: &mut Agent, rounds: usize, from_cli: bool) -> Void {
             reward_interpretor.end_training_reward,
         );
         let score = playground.get_score();
-        if from_cli {
+        if display_rounds {
             if score > best_score {
                 best_score = score;
             }
-            println!("try: {round}: score: {score}, best: {best_score}");
+            println!("try: {round}: score: {:03}, best: {:03} | current explo_rate: {}, current discount_factor: {}", score, best_score, agent.exploration_rate, agent.discount_factor);
         }
         agent.store_score(score);
-        agent.reduce_exploration_by(1. / (0.8 * rounds as f64));
-        agent.increase_discount_factor_by(0.75 / rounds as f64);
+        agent.reduce_exploration_by(5. / (8. * rounds as f64));
+        agent.increase_discount_factor_by(1. / rounds as f64);
     });
 
     agent.save()?;

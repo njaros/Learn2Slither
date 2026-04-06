@@ -3,6 +3,7 @@ use playground::Tile;
 pub struct RewardInterpretor {
     old_env: Vec<Vec<Tile>>,
     pub end_training_reward: f64,
+    starving: f64,
 }
 
 impl RewardInterpretor {
@@ -10,6 +11,7 @@ impl RewardInterpretor {
         RewardInterpretor {
             old_env: vec![vec![]],
             end_training_reward: -100.,
+            starving: 0.,
         }
     }
 
@@ -26,15 +28,34 @@ impl RewardInterpretor {
 
     pub fn init(&mut self, init_env: &Vec<Vec<Tile>>) {
         self.old_env = init_env.clone();
+        self.starving = 0.
     }
 
     pub fn get_reward(&mut self, new_env: &Vec<Vec<Tile>>) -> f64 {
         let row_idx = self._find_lower_dir(new_env);
         let reward = match self.old_env[row_idx][0] {
-            Tile::Empty => -1.,
-            Tile::Green => 20.,
-            Tile::Red => -30.,
-            Tile::Body => -30.,
+            Tile::Empty => {
+                if self.starving < 10. {
+                    self.starving += 1.;
+                }
+                -self.starving
+            }
+            Tile::Green => {
+                self.starving = 0.;
+                20.
+            }
+            Tile::Red => {
+                if self.starving < 10. {
+                    self.starving += 1.;
+                }
+                -30. - self.starving
+            }
+            Tile::Body => {
+                if self.starving < 10. {
+                    self.starving += 1.;
+                }
+                -60. - self.starving
+            }
             _ => unreachable!(),
         };
         self.old_env = new_env.clone();
