@@ -4,7 +4,7 @@ use piston_components::{
     components::{
         PistonComponent,
         buttons::{MyButton, Style},
-        sliders::Slider,
+        sliders::{LerpMode, Slider},
     },
 };
 use piston_window::{graphics::Text, *};
@@ -38,14 +38,23 @@ fn build_playground(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
         },
     );
 
-    let mut slider_width = Slider::new(5, 50, app.selected_width, [200., 200., 500., 60.], |app| {
-        &mut app.selected_width
-    });
+    let mut slider_width = Slider::new(
+        5,
+        50,
+        app.selected_width,
+        [200., 200., 500., 60.],
+        LerpMode::Linear,
+        |app| &mut app.selected_width,
+    );
 
-    let mut slider_height =
-        Slider::new(5, 50, app.selected_height, [200., 450., 500., 60.], |app| {
-            &mut app.selected_height
-        });
+    let mut slider_height = Slider::new(
+        5,
+        50,
+        app.selected_height,
+        [200., 450., 500., 60.],
+        LerpMode::Linear,
+        |app| &mut app.selected_height,
+    );
 
     window.draw_2d(e, |c, g, _| {
         clear([0.8, 0.8, 0.8, 1.0], g);

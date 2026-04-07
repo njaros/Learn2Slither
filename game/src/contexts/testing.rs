@@ -3,7 +3,7 @@ use graphics::*;
 use piston_components::app_params::app_params::{AppParams, LeaderBoardItem, Route, TestingParams};
 use piston_components::components::PistonComponent;
 use piston_components::components::buttons::{ButtonActionFromVal, MyButton, Style};
-use piston_components::components::sliders::{Slider, SliderVertical};
+use piston_components::components::sliders::{LerpMode, Slider, SliderVertical};
 use piston_components::components::switch::NamedSwitch;
 use piston_window::{graphics::Text, *};
 use playground::PlayGround;
@@ -41,14 +41,23 @@ fn test_form(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
         },
     );
 
-    let mut slider_width = Slider::new(5, 50, app.selected_width, [75., 180., 300., 40.], |app| {
-        &mut app.selected_width
-    });
+    let mut slider_width = Slider::new(
+        5,
+        50,
+        app.selected_width,
+        [75., 180., 300., 40.],
+        LerpMode::Linear,
+        |app| &mut app.selected_width,
+    );
 
-    let mut slider_height =
-        Slider::new(5, 50, app.selected_height, [75., 330., 300., 40.], |app| {
-            &mut app.selected_height
-        });
+    let mut slider_height = Slider::new(
+        5,
+        50,
+        app.selected_height,
+        [75., 330., 300., 40.],
+        LerpMode::Linear,
+        |app| &mut app.selected_height,
+    );
 
     let mut models_buttons = match &app.testing_params.model_names {
         Err(_) => Vec::<ButtonActionFromVal<String, Res<Vec<String>>>>::new(),
@@ -93,6 +102,7 @@ fn test_form(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
             },
         ),
         [950., 200., 30., 210.],
+        LerpMode::Linear,
         |app| &mut app.testing_params.model_cursor,
     );
 
@@ -144,6 +154,7 @@ fn test_form(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
             },
         ),
         [655., 520., 265., 30.],
+        LerpMode::Linear,
         |app| &mut app.testing_params.model_idx_cursor,
     );
 
@@ -365,6 +376,7 @@ fn testing_board(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
         1000,
         app.testing_params.speed_time,
         [820., 275., 130., 40.],
+        LerpMode::Linear,
         |app| &mut app.testing_params.speed_time,
     );
 

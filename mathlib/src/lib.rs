@@ -17,7 +17,18 @@ where
 pub fn lerp_usize(min: usize, max: usize, ratio: f64) -> usize {
     let minf = min as f64;
     let maxf = max as f64;
-    (minf + (ratio * (maxf - minf))) as usize
+    f64::round(minf + (ratio * (maxf - minf))) as usize
+}
+
+pub fn lerp_ln_usize(min: usize, max: usize, ratio: f64) -> usize {
+    let mut minf = min as f64;
+    let maxf = max as f64;
+
+    if minf == 0. {
+        minf = 0. + 0.00001
+    }
+
+    f64::round(minf * (maxf / minf).powf(ratio)) as usize
 }
 
 #[cfg(test)]
@@ -48,5 +59,11 @@ mod tests {
         assert_eq!(lerp_usize(10, 100, 0.), 10);
         assert_eq!(lerp_usize(10, 100, 1.), 100);
         assert_eq!(lerp_usize(10, 100, 0.5), 55);
+    }
+
+    #[test]
+    fn test_lerp_log() {
+        assert_eq!(lerp_ln_usize(1, 10, 0.99), 9);
+        assert_eq!(lerp_ln_usize(0, 10, 0.99), 9);
     }
 }
