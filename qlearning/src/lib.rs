@@ -1,3 +1,5 @@
+use std::{thread::sleep, time::Duration};
+
 use convenient_lib::Void;
 use playground::{Dir, PlayGround};
 use rand::make_rng;
@@ -17,7 +19,7 @@ fn dir_to_usize(dir: Dir) -> usize {
     }
 }
 
-pub fn train_loop(agent: &mut Agent, rounds: usize, display_rounds: bool) -> Void {
+pub fn train_loop(agent: &mut Agent, rounds: usize, display_rounds: bool, display_sleep: Option<&u64>) -> Void {
     let mut reward_interpretor = RewardInterpretor::new();
     let mut best_score = 0u32;
     let mut current_score = 0u32;
@@ -25,17 +27,29 @@ pub fn train_loop(agent: &mut Agent, rounds: usize, display_rounds: bool) -> Voi
     (1..rounds).for_each(|round| {
         let mut playground: PlayGround = PlayGround::new(10, 10, make_rng());
         let env = &playground.snake_view();
+        if let Some(sleep_time) = display_sleep {
+            playground.print_snake_view();
+            sleep(Duration::from_millis(*sleep_time));
+        }
         reward_interpretor.init(env);
         let mut state = agent.ets.env_to_state(env);
-        let mut dir = agent.play(state);
+        let mut dir = agent.play(state, display_sleep.is_some());
         let mut env = playground.next(dir);
         while playground.is_alive() {
+            if let Some(sleep_time) = display_sleep {
+                playground.print_snake_view();
+                sleep(Duration::from_millis(*sleep_time));
+            }
             let next_state = agent.ets.env_to_state(&env);
             let reward = reward_interpretor.get_reward(&env);
             agent.bellman(state, Some(next_state), dir_to_usize(dir), reward);
             state = next_state;
-            dir = agent.play(state);
+            dir = agent.play(state, display_sleep.is_some());
             env = playground.next(dir);
+        }
+        if let Some(sleep_time) = display_sleep {
+            println!("{playground}");
+            sleep(Duration::from_millis(*sleep_time));
         }
         agent.bellman(
             state,

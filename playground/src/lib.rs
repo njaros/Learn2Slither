@@ -371,7 +371,6 @@ impl PlayGround {
 impl fmt::Display for PlayGround {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut construct = String::new();
-        construct.push('\n');
         self.grid.iter().for_each(|row| {
             row.iter()
                 .for_each(|tile| construct.push(tile_to_char(*tile)));

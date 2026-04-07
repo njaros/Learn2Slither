@@ -51,8 +51,8 @@ impl Agent {
         })
     }
 
-    pub fn from(name: String, idx: usize, new_name: Option<&String>) -> Res<Agent> {
-        let path = String::from("models/") + &name + "/" + &idx.to_string() + ".json";
+    pub fn from(name: String, idx: String, new_name: Option<&String>) -> Res<Agent> {
+        let path = String::from("models/") + &name + "/" + &idx + ".json";
         let file = fs::File::open(path)?;
         let mut contents = String::new();
         let mut buf_reader = BufReader::new(file);
@@ -216,11 +216,10 @@ impl Agent {
                         })
     }
 
-    pub fn play(&mut self, state: usize) -> Dir {
-        if self.exploration_rate > 0. && self.exploration_rate > self.seed.random_range(0f64..1.) {
-            return *self.actions.choose(&mut self.seed).unwrap();
-        }
-        self.actions[self.q_table[state]
+    pub fn play(&mut self, state: usize, term_display: bool) -> Dir {
+        let action = match self.exploration_rate > 0. && self.exploration_rate > self.seed.random_range(0f64..1.) {
+            true => *self.actions.choose(&mut self.seed).unwrap(),
+            false => self.actions[self.q_table[state]
             .iter()
             .enumerate()
             .fold((0usize, f64::MIN), |(max_idx, acc_max), (idx, &n)| {
@@ -231,5 +230,17 @@ impl Agent {
                 }
             })
             .0]
+        };
+
+        if term_display {
+            println!("\n\nSnake: I go {}\n", match action {
+                Dir::Down => "DOWN !",
+                Dir::Up => "UP !",
+                Dir::Left => "LEFT !",
+                Dir::Right => "RIGHT !"
+            });
+        }
+
+        action
     }
 }
