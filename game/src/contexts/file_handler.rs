@@ -25,7 +25,8 @@ pub fn save_leaderboard(file_path: &str, leaderboard: &LeaderBoard) -> Void {
 }
 
 pub fn get_model_names(base_path: &str) -> Res<Vec<String>> {
-    Ok(read_dir(Path::new(base_path))?
+    let file_list = read_dir(Path::new(base_path))?;
+    let mut names: Vec<String> = file_list
         .map(|entry| {
             entry
                 .expect("couldn't get an entry ?")
@@ -36,11 +37,15 @@ pub fn get_model_names(base_path: &str) -> Res<Vec<String>> {
                 .unwrap()
                 .into()
         })
-        .collect())
+        .collect();
+    names.sort();
+
+    Ok(names)
 }
 
 pub fn get_model_bests(path: &PathBuf) -> Res<Vec<String>> {
-    Ok(read_dir(path)?
+    let file_list = read_dir(path)?;
+    let mut bests: Vec<String> = file_list
         .map(|entry| {
             entry
                 .expect("couldn't get an entry ?")
@@ -51,7 +56,10 @@ pub fn get_model_bests(path: &PathBuf) -> Res<Vec<String>> {
                 .unwrap()
                 .into()
         })
-        .collect())
+        .collect();
+    bests.sort();
+
+    Ok(bests)
 }
 
 pub fn get_model(path: &mut PathBuf) -> Res<Model> {
