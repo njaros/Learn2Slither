@@ -1,7 +1,12 @@
-use mathlib::lerp_usize;
+use mathlib::{lerp_ln_usize, lerp_usize};
 use piston_window::graphics::{Rectangle, color};
 
 use crate::{app_params::app_params::AppParams, components::PistonComponent};
+
+pub enum LerpMode {
+    Linear,
+    Ln,
+}
 
 pub struct Slider {
     min: usize,
@@ -9,6 +14,7 @@ pub struct Slider {
     current: usize,
     visual_shapes: [f64; 4],
     shapes: [f64; 4],
+    interpolation_mode: LerpMode,
     store_val: for<'a> fn(&'a mut AppParams) -> &'a mut usize,
 }
 
@@ -27,15 +33,17 @@ impl Slider {
     }
 
     fn _cursor_to_current(&self, x: f64) -> usize {
-        let mut decal_mouse = x;
-        if decal_mouse < self.shapes[0] {
-            decal_mouse = self.shapes[0];
+        if x < self.shapes[0] {
+            return self.min;
         }
-        if decal_mouse > self.shapes[0] + self.shapes[2] {
-            decal_mouse = self.shapes[0] + self.shapes[2];
+        if x > self.shapes[0] + self.shapes[2] {
+            return self.max;
         }
-        let lerp_val = (decal_mouse - self.shapes[0]) / self.shapes[2];
-        lerp_usize(self.min, self.max, lerp_val)
+        let lerp_val = (x - self.shapes[0]) / self.shapes[2];
+        match self.interpolation_mode {
+            LerpMode::Linear => lerp_usize(self.min, self.max, lerp_val),
+            LerpMode::Ln => lerp_ln_usize(self.min, self.max, lerp_val),
+        }
     }
 
     pub fn new(
@@ -43,6 +51,7 @@ impl Slider {
         max: usize,
         current: usize,
         shapes: [f64; 4],
+        interpolation_mode: LerpMode,
         store_val: for<'a> fn(&'a mut AppParams) -> &'a mut usize,
     ) -> Slider {
         assert!(
@@ -61,6 +70,7 @@ impl Slider {
             current,
             visual_shapes: shapes,
             shapes: true_shapes,
+            interpolation_mode,
             store_val,
         }
     }
@@ -74,9 +84,26 @@ impl PistonComponent for Slider {
         _: &piston::Event,
         _: &mut AppParams,
     ) {
-        let cur_x = self.shapes[0] - self.shapes[3] / 2.
-            + (self.current as f64 - self.min as f64) / (self.max as f64 - self.min as f64)
-                * (self.shapes[2]);
+        let cur_x = match self.interpolation_mode {
+            LerpMode::Linear => {
+                self.shapes[0] - self.shapes[3] / 2.
+                    + (self.current as f64 - self.min as f64) / (self.max as f64 - self.min as f64)
+                        * (self.shapes[2])
+            }
+            LerpMode::Ln => {
+                let mut currentf = self.current as f64;
+                let mut minf = self.min as f64;
+                let maxf = self.max as f64;
+                if minf == 0. {
+                    minf = 0.00001;
+                }
+                if currentf == 0. {
+                    currentf = 0.00001;
+                }
+                self.shapes[0] - self.shapes[3] / 2.
+                    + (currentf.ln() - minf.ln()) / (maxf.ln() - minf.ln()) * self.shapes[2]
+            }
+        };
         let cur_y = self.shapes[1];
         let cur_size = self.shapes[3];
         Rectangle::new(color::GRAY).draw(self.visual_shapes, &c.draw_state, c.transform, g);
@@ -106,6 +133,7 @@ pub struct SliderVertical {
     current: usize,
     visual_shapes: [f64; 4],
     shapes: [f64; 4],
+    interpolation_mode: LerpMode,
     store_val: for<'a> fn(&'a mut AppParams) -> &'a mut usize,
 }
 
@@ -124,15 +152,17 @@ impl SliderVertical {
     }
 
     fn _cursor_to_current(&self, y: f64) -> usize {
-        let mut decal_mouse = y;
-        if decal_mouse < self.shapes[1] {
-            decal_mouse = self.shapes[1];
+        if y < self.shapes[1] {
+            return self.min;
         }
-        if decal_mouse > self.shapes[1] + self.shapes[3] {
-            decal_mouse = self.shapes[1] + self.shapes[3];
+        if y > self.shapes[1] + self.shapes[3] {
+            return self.max;
         }
-        let lerp_val = (decal_mouse - self.shapes[1]) / self.shapes[3];
-        lerp_usize(self.min, self.max, lerp_val)
+        let lerp_val = (y - self.shapes[1]) / self.shapes[3];
+        match self.interpolation_mode {
+            LerpMode::Linear => lerp_usize(self.min, self.max, lerp_val),
+            LerpMode::Ln => lerp_ln_usize(self.min, self.max, lerp_val),
+        }
     }
 
     pub fn new(
@@ -140,6 +170,7 @@ impl SliderVertical {
         max: usize,
         current: usize,
         shapes: [f64; 4],
+        interpolation_mode: LerpMode,
         store_val: for<'a> fn(&'a mut AppParams) -> &'a mut usize,
     ) -> Self {
         assert!(
@@ -158,6 +189,7 @@ impl SliderVertical {
             current,
             visual_shapes: shapes,
             shapes: true_shapes,
+            interpolation_mode,
             store_val,
         }
     }
@@ -171,9 +203,26 @@ impl PistonComponent for SliderVertical {
         _: &piston::Event,
         _: &mut AppParams,
     ) {
-        let cur_y = self.shapes[1] - self.shapes[2] / 2.
-            + (self.current as f64 - self.min as f64) / (self.max as f64 - self.min as f64)
-                * (self.shapes[3]);
+        let cur_y = match self.interpolation_mode {
+            LerpMode::Linear => {
+                self.shapes[1] - self.shapes[2] / 2.
+                    + (self.current as f64 - self.min as f64) / (self.max as f64 - self.min as f64)
+                        * self.shapes[3]
+            }
+            LerpMode::Ln => {
+                let mut currentf = self.current as f64;
+                let mut minf = self.min as f64;
+                let maxf = self.max as f64;
+                if minf == 0. {
+                    minf = 0.00001;
+                }
+                if currentf == 0. {
+                    currentf = 0.00001;
+                }
+                self.shapes[1] - self.shapes[2] / 2.
+                    + (currentf.ln() - minf.ln()) / (maxf.ln() - minf.ln()) * self.shapes[3]
+            }
+        };
         let cur_x = self.shapes[0];
         let cur_size = self.shapes[2];
         Rectangle::new(color::GRAY).draw(self.visual_shapes, &c.draw_state, c.transform, g);

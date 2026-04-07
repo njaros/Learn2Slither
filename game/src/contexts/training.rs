@@ -9,7 +9,7 @@ use piston_components::{
     components::{
         PistonComponent,
         buttons::{ButtonActionFromVal, ButtonStoreVal, MyButton, Style},
-        sliders::{Slider, SliderVertical},
+        sliders::{LerpMode, Slider, SliderVertical},
         switch::{NamedSwitch, NamedSwitchAction},
         text_area::TextArea,
     },
@@ -98,6 +98,7 @@ fn training_form<'a>(window: &mut PistonWindow, e: &Event, app: &'a mut AppParam
             },
         ),
         [950., 200., 30., 360.],
+        LerpMode::Linear,
         |app| &mut app.training_params.ets_cursor,
     );
 
@@ -146,6 +147,7 @@ fn training_form<'a>(window: &mut PistonWindow, e: &Event, app: &'a mut AppParam
             },
         ),
         [950., 200., 30., 210.],
+        LerpMode::Linear,
         |app| &mut app.training_params.from_model_cursor,
     );
 
@@ -197,6 +199,7 @@ fn training_form<'a>(window: &mut PistonWindow, e: &Event, app: &'a mut AppParam
             },
         ),
         [655., 520., 265., 30.],
+        LerpMode::Linear,
         |app| &mut app.training_params.from_model_idx_cursor,
     );
 
@@ -245,6 +248,7 @@ fn training_form<'a>(window: &mut PistonWindow, e: &Event, app: &'a mut AppParam
         1000,
         app.training_params.speed_time,
         [350., 340., 150., 50.],
+        LerpMode::Linear,
         |app| &mut app.training_params.speed_time,
     );
 
@@ -253,6 +257,7 @@ fn training_form<'a>(window: &mut PistonWindow, e: &Event, app: &'a mut AppParam
         100000,
         app.training_params.rounds,
         [350., 500., 150., 50.],
+        LerpMode::Ln,
         |app| &mut app.training_params.rounds,
     );
 
@@ -569,6 +574,7 @@ fn training_board(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
         1000,
         app.training_params.speed_time,
         [820., 275., 130., 40.],
+        LerpMode::Linear,
         |app| &mut app.training_params.speed_time,
     );
 
