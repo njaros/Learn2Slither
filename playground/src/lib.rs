@@ -23,12 +23,23 @@ pub enum Tile {
     Boom,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum Dir {
     Up,
     Down,
     Left,
     Right,
+}
+
+impl Dir {
+    pub fn is_opposite_of(&self, other: Dir) -> bool {
+        match self {
+            Dir::Down => other == Dir::Up,
+            Dir::Up => other == Dir::Down,
+            Dir::Left => other == Dir::Right,
+            Dir::Right => other == Dir::Left
+        }
+    }
 }
 
 pub fn tile_to_char(tile: Tile) -> char {
@@ -105,6 +116,7 @@ pub struct PlayGround {
     grid: Vec<Vec<Tile>>,
     // Empties is used as a pool of coordinates for all random picks.
     empties: HashSet<Coord>,
+    last_dir: Option<Dir>,
     snake: VecDeque<Coord>,
     head_pos: Coord,
     pub state: State,
@@ -290,6 +302,25 @@ impl PlayGround {
             }
         }
 
+        match self.last_dir {
+            None => {
+                if self.grid[coord.y][coord.x] == Tile::Body {
+                    self._change_tile(*self.snake.front().unwrap(), Tile::Boom);
+                    self.state = State::Dead;
+                    return self.snake_view();
+                }
+            },
+            Some(dir_prev) => {
+                if self.snake.len() > 1 && dir_prev.is_opposite_of(dir) {
+                    self._change_tile(*self.snake.front().unwrap(), Tile::Boom);
+                    self.state = State::Dead;
+                    return self.snake_view();
+                }
+            }
+        }
+
+        self.last_dir = Some(dir);
+
         self._change_tile(*self.snake.front().unwrap(), Tile::Body);
         self.snake.push_front(coord);
         self.head_pos = coord;
@@ -352,6 +383,7 @@ impl PlayGround {
             width,
             grid: vec![vec![Tile::Empty; width + 2]; height + 2],
             empties: HashSet::<Coord>::new(),
+            last_dir: None,
             seed: seed,
             snake: VecDeque::<Coord>::new(),
             head_pos: Coord { x: 0, y: 0 },
