@@ -27,14 +27,14 @@ impl Slider {
     }
 
     fn _cursor_to_current(&self, x: f64) -> usize {
-        let mut decal_mouse = x - self.shapes[3] / 2.;
+        let mut decal_mouse = x;
         if decal_mouse < self.shapes[0] {
             decal_mouse = self.shapes[0];
         }
-        if decal_mouse > self.shapes[0] + self.shapes[2] - self.shapes[3] {
-            decal_mouse = self.shapes[0] + self.shapes[2] - self.shapes[3];
+        if decal_mouse > self.shapes[0] + self.shapes[2] {
+            decal_mouse = self.shapes[0] + self.shapes[2];
         }
-        let lerp_val = (decal_mouse - self.shapes[0]) / (self.shapes[2] - self.shapes[3]);
+        let lerp_val = (decal_mouse - self.shapes[0]) / self.shapes[2];
         lerp_usize(self.min, self.max, lerp_val)
     }
 
@@ -52,7 +52,7 @@ impl Slider {
         let true_shapes = [
             shapes[0] + shapes[3] / 2.,
             shapes[1],
-            shapes[2] - shapes[3] / 2.,
+            shapes[2] - shapes[3],
             shapes[3],
         ];
         Slider {
@@ -76,7 +76,7 @@ impl PistonComponent for Slider {
     ) {
         let cur_x = self.shapes[0] - self.shapes[3] / 2.
             + (self.current as f64 - self.min as f64) / (self.max as f64 - self.min as f64)
-                * (self.shapes[2] - self.shapes[3] / 2.);
+                * (self.shapes[2]);
         let cur_y = self.shapes[1];
         let cur_size = self.shapes[3];
         Rectangle::new(color::GRAY).draw(self.visual_shapes, &c.draw_state, c.transform, g);
@@ -124,14 +124,14 @@ impl SliderVertical {
     }
 
     fn _cursor_to_current(&self, y: f64) -> usize {
-        let mut decal_mouse = y - self.shapes[2] / 2.;
+        let mut decal_mouse = y;
         if decal_mouse < self.shapes[1] {
             decal_mouse = self.shapes[1];
         }
-        if decal_mouse > self.shapes[1] + self.shapes[3] - self.shapes[2] {
-            decal_mouse = self.shapes[1] + self.shapes[3] - self.shapes[2];
+        if decal_mouse > self.shapes[1] + self.shapes[3] {
+            decal_mouse = self.shapes[1] + self.shapes[3];
         }
-        let lerp_val = (decal_mouse - self.shapes[1]) / (self.shapes[3] - self.shapes[2]);
+        let lerp_val = (decal_mouse - self.shapes[1]) / self.shapes[3];
         lerp_usize(self.min, self.max, lerp_val)
     }
 
@@ -150,7 +150,7 @@ impl SliderVertical {
             shapes[0],
             shapes[1] + shapes[2] / 2.,
             shapes[2],
-            shapes[3] - shapes[2] / 2.,
+            shapes[3] - shapes[2],
         ];
         Self {
             min,
@@ -173,7 +173,7 @@ impl PistonComponent for SliderVertical {
     ) {
         let cur_y = self.shapes[1] - self.shapes[2] / 2.
             + (self.current as f64 - self.min as f64) / (self.max as f64 - self.min as f64)
-                * (self.shapes[3] - self.shapes[2] / 2.);
+                * (self.shapes[3]);
         let cur_x = self.shapes[0];
         let cur_size = self.shapes[2];
         Rectangle::new(color::GRAY).draw(self.visual_shapes, &c.draw_state, c.transform, g);
