@@ -37,7 +37,7 @@ impl Dir {
             Dir::Down => other == Dir::Up,
             Dir::Up => other == Dir::Down,
             Dir::Left => other == Dir::Right,
-            Dir::Right => other == Dir::Left
+            Dir::Right => other == Dir::Left,
         }
     }
 }
@@ -309,7 +309,7 @@ impl PlayGround {
                     self.state = State::Dead;
                     return self.snake_view();
                 }
-            },
+            }
             Some(dir_prev) => {
                 if self.snake.len() > 1 && dir_prev.is_opposite_of(dir) {
                     self._change_tile(*self.snake.front().unwrap(), Tile::Boom);

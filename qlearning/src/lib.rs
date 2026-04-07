@@ -19,7 +19,12 @@ fn dir_to_usize(dir: Dir) -> usize {
     }
 }
 
-pub fn train_loop(agent: &mut Agent, rounds: usize, display_rounds: bool, display_sleep: Option<&u64>) -> Void {
+pub fn train_loop(
+    agent: &mut Agent,
+    rounds: usize,
+    display_rounds: bool,
+    display_sleep: Option<&u64>,
+) -> Void {
     let mut reward_interpretor = RewardInterpretor::new();
     let mut best_score = 0u32;
     let mut current_score = 0u32;

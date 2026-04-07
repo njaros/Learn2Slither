@@ -217,28 +217,35 @@ impl Agent {
     }
 
     pub fn play(&mut self, state: usize, term_display: bool) -> Dir {
-        let action = match self.exploration_rate > 0. && self.exploration_rate > self.seed.random_range(0f64..1.) {
+        let action = match self.exploration_rate > 0.
+            && self.exploration_rate > self.seed.random_range(0f64..1.)
+        {
             true => *self.actions.choose(&mut self.seed).unwrap(),
-            false => self.actions[self.q_table[state]
-            .iter()
-            .enumerate()
-            .fold((0usize, f64::MIN), |(max_idx, acc_max), (idx, &n)| {
-                if acc_max > n {
-                    return (max_idx, acc_max);
-                } else {
-                    return (idx, n);
-                }
-            })
-            .0]
+            false => {
+                self.actions[self.q_table[state]
+                    .iter()
+                    .enumerate()
+                    .fold((0usize, f64::MIN), |(max_idx, acc_max), (idx, &n)| {
+                        if acc_max > n {
+                            return (max_idx, acc_max);
+                        } else {
+                            return (idx, n);
+                        }
+                    })
+                    .0]
+            }
         };
 
         if term_display {
-            println!("\n\nSnake: I go {}\n", match action {
-                Dir::Down => "DOWN !",
-                Dir::Up => "UP !",
-                Dir::Left => "LEFT !",
-                Dir::Right => "RIGHT !"
-            });
+            println!(
+                "\n\nSnake: I go {}\n",
+                match action {
+                    Dir::Down => "DOWN !",
+                    Dir::Up => "UP !",
+                    Dir::Left => "LEFT !",
+                    Dir::Right => "RIGHT !",
+                }
+            );
         }
 
         action

@@ -416,7 +416,7 @@ fn training_form<'a>(window: &mut PistonWindow, e: &Event, app: &'a mut AppParam
 
         if app.training_params.name.len() > 0
             && ((app.training_params.from_bool && app.training_params.from_model.is_some())
-            || (!app.training_params.from_bool && app.training_params.ets.is_some()))
+                || (!app.training_params.from_bool && app.training_params.ets.is_some()))
         {
             train_button.draw(&c, g, e, app);
         }
@@ -479,7 +479,7 @@ fn training_form<'a>(window: &mut PistonWindow, e: &Event, app: &'a mut AppParam
 
     if app.training_params.name.len() > 0
         && ((app.training_params.from_bool && app.training_params.from_model.is_some())
-        || (!app.training_params.from_bool && app.training_params.ets.is_some()))
+            || (!app.training_params.from_bool && app.training_params.ets.is_some()))
     {
         train_button.handle_event(e, app);
     }
@@ -755,7 +755,8 @@ fn training_board(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
                 match playground.is_alive() {
                     true => playground.print_snake_view(),
                     false => {
-                        println!("try: {}: score: {:03} | current explo_rate: {}, current discount_factor: {}\n",
+                        println!(
+                            "try: {}: score: {:03} | current explo_rate: {}, current discount_factor: {}\n",
                             app.training_params.current_round + 1,
                             playground.get_score(),
                             agent.exploration_rate,
@@ -858,7 +859,7 @@ fn train_view(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
             &mut app.agent.as_mut().unwrap(),
             app.training_params.rounds,
             true,
-            None
+            None,
         )
         .unwrap();
     }
