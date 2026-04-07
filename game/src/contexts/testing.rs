@@ -499,44 +499,51 @@ fn testing_board(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
         if playground.is_alive() {
             let env = &playground.snake_view();
             let state = agent.ets.env_to_state(env);
-            let dir = agent.play(state);
+            let dir = agent.play(state, true);
             playground.next(dir);
-            if !playground.is_alive() && !app.testing_params.infinite_loop {
-                app.testing_params.pause = true;
-            }
-        } else {
-            if app.selected_height == 10 && app.selected_width == 10 {
-                if app.leaderboard.leaderboard.len() < 10 {
-                    app.leaderboard.leaderboard.push(LeaderBoardItem {
-                        score: playground.get_score(),
-                        model_name: app.agent.as_ref().unwrap().name.clone(),
-                        ets_name: app.agent.as_ref().unwrap().ets.get_name(),
-                    });
-                    app.leaderboard
-                        .leaderboard
-                        .sort_by(|a, b| b.score.cmp(&a.score));
-                } else {
-                    match app.leaderboard.leaderboard[9].score < playground.get_score() {
-                        true => {
-                            app.leaderboard.leaderboard.remove(9);
-                            app.leaderboard.leaderboard.push(LeaderBoardItem {
-                                score: playground.get_score(),
-                                model_name: app.agent.as_ref().unwrap().name.clone(),
-                                ets_name: app.agent.as_ref().unwrap().ets.get_name(),
-                            });
-                            app.leaderboard
-                                .leaderboard
-                                .sort_by(|a, b| b.score.cmp(&a.score));
+            if !playground.is_alive() {
+                println!("{playground}");
+                println!("\nDEAD ! score: {}\n", playground.get_score());
+                if app.selected_height == 10 && app.selected_width == 10 {
+                    if app.leaderboard.leaderboard.len() < 10 {
+                        app.leaderboard.leaderboard.push(LeaderBoardItem {
+                            score: playground.get_score(),
+                            model_name: app.agent.as_ref().unwrap().name.clone(),
+                            ets_name: app.agent.as_ref().unwrap().ets.get_name(),
+                        });
+                        app.leaderboard
+                            .leaderboard
+                            .sort_by(|a, b| b.score.cmp(&a.score));
+                    } else {
+                        match app.leaderboard.leaderboard[9].score < playground.get_score() {
+                            true => {
+                                app.leaderboard.leaderboard.remove(9);
+                                app.leaderboard.leaderboard.push(LeaderBoardItem {
+                                    score: playground.get_score(),
+                                    model_name: app.agent.as_ref().unwrap().name.clone(),
+                                    ets_name: app.agent.as_ref().unwrap().ets.get_name(),
+                                });
+                                app.leaderboard
+                                    .leaderboard
+                                    .sort_by(|a, b| b.score.cmp(&a.score));
+                            }
+                            false => {}
                         }
-                        false => {}
                     }
                 }
+                if !app.testing_params.infinite_loop {
+                    app.testing_params.pause = true;
+                }
+            } else {
+                playground.print_snake_view();
             }
+        } else {
             app.playground = Some(PlayGround::new(
                 app.selected_height,
                 app.selected_width,
                 make_rng(),
             ));
+            app.playground.as_ref().unwrap().print_snake_view();
         }
     }
 
@@ -593,7 +600,8 @@ pub fn testing_route(window: &mut PistonWindow, e: &Event, app: &mut AppParams) 
                     app.selected_height,
                     app.selected_width,
                     make_rng(),
-                ))
+                ));
+                app.playground.as_ref().unwrap().print_snake_view()
             }
         },
         None => test_form(window, e, app),

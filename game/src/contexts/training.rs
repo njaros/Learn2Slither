@@ -540,6 +540,11 @@ fn training_board(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
                 .unwrap()
                 .snapshot(app.playground.as_ref().unwrap().get_score(), 's')
                 .unwrap();
+            app.agent
+                .as_ref()
+                .unwrap()
+                .snapshot(app.playground.as_ref().unwrap().get_score(), 'l')
+                .unwrap();
             app.training_params.just_snapshoted = true;
         },
     );
@@ -550,6 +555,11 @@ fn training_board(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
         "Save bests".into(),
         |app| {
             app.agent.as_ref().unwrap().save().unwrap();
+            app.agent
+                .as_ref()
+                .unwrap()
+                .snapshot(app.playground.as_ref().unwrap().get_score(), 'l')
+                .unwrap();
             app.training_params.just_save_all = true;
         },
     );
@@ -740,8 +750,20 @@ fn training_board(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
                     }
                 }
                 app.training_params.previous_state = Some(current_state);
-                app.training_params.last_dir = agent.play(current_state);
+                app.training_params.last_dir = agent.play(current_state, true);
                 playground.next(app.training_params.last_dir);
+                match playground.is_alive() {
+                    true => playground.print_snake_view(),
+                    false => {
+                        println!("try: {}: score: {:03} | current explo_rate: {}, current discount_factor: {}\n",
+                            app.training_params.current_round + 1,
+                            playground.get_score(),
+                            agent.exploration_rate,
+                            agent.discount_factor
+                        );
+                        println!("{playground}")
+                    }
+                }
             } else {
                 agent.bellman(
                     app.training_params.previous_state.unwrap(),
@@ -759,6 +781,7 @@ fn training_board(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
                     agent.reduce_exploration_by(5. / (8. * app.training_params.rounds as f64));
                     agent.increase_discount_factor_by(1. / app.training_params.rounds as f64);
                     app.playground = Some(PlayGround::new(10, 10, make_rng()));
+                    app.playground.as_ref().unwrap().print_snake_view();
                     app.training_params
                         .rewarder
                         .init(&app.playground.as_ref().unwrap().snake_view());
@@ -835,6 +858,7 @@ fn train_view(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
             &mut app.agent.as_mut().unwrap(),
             app.training_params.rounds,
             true,
+            None
         )
         .unwrap();
     }
@@ -887,6 +911,7 @@ pub fn training_route(window: &mut PistonWindow, e: &Event, app: &mut AppParams)
             match &mut app.playground {
                 None => {
                     app.playground = Some(PlayGround::new(10, 10, make_rng()));
+                    app.playground.as_ref().unwrap().print_snake_view();
                     app.training_params
                         .rewarder
                         .init(&app.playground.as_ref().unwrap().snake_view());
