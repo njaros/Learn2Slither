@@ -16,18 +16,22 @@ pub fn tile_to_color(tile: &Tile) -> [f32; 4] {
 pub struct Board {
     start_grid_x: f64,
     start_grid_y: f64,
-    spacing: f64,
+    border_size: f64,
     rect_size: f64,
     grid: Vec<Vec<Rectangle>>,
 }
 
 impl Board {
     pub fn new(engine: &PlayGround, snake_view: bool) -> Self {
-        let start_grid_x = 11.;
-        let start_grid_y = 10.;
+        let mut start_grid_x = 13.;
+        let mut start_grid_y = 10.;
         let max_size = std::cmp::max(engine.width, engine.height);
-        let spacing = 100. / max_size as f64;
-        let rect_size = 480. / max_size as f64;
+        let border_size = 72. / (max_size + 2) as f64;
+        let rect_size = 720. / (max_size + 2) as f64;
+        match engine.width > engine.height {
+            true => start_grid_y += (engine.width - engine.height) as f64 * rect_size / 2.,
+            false => start_grid_x += (engine.height - engine.width) as f64 * rect_size / 2.,
+        };
         let state = engine.state;
         let mut grid = Vec::<Vec<Rectangle>>::new();
 
@@ -79,7 +83,7 @@ impl Board {
         Self {
             start_grid_x,
             start_grid_y,
-            spacing,
+            border_size,
             rect_size,
             grid,
         }
@@ -92,13 +96,15 @@ impl Board {
     ) {
         self.grid.iter().enumerate().for_each(|(y, row)| {
             row.iter().enumerate().for_each(|(x, rect)| {
-                rect.draw(
-                    [
-                        self.start_grid_x + (self.rect_size + self.spacing) * x as f64,
-                        self.start_grid_y + (self.rect_size + self.spacing) * y as f64,
-                        self.rect_size,
-                        self.rect_size,
-                    ],
+                let shapes = [
+                    self.start_grid_x + self.rect_size * x as f64,
+                    self.start_grid_y + self.rect_size * y as f64,
+                    self.rect_size,
+                    self.rect_size,
+                ];
+                rect.draw(shapes, &c.draw_state, c.transform, g);
+                Rectangle::new_border(color::WHITE, self.border_size).draw(
+                    shapes,
                     &c.draw_state,
                     c.transform,
                     g,
