@@ -141,7 +141,7 @@ fn playing_board(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
         let alive = playground.state == State::Alive;
         let score = playground.get_score();
 
-        let board = Board::new(playground, alive);
+        let board = Board::new(playground, alive, 720.);
 
         board.draw(&c, g);
 

@@ -22,12 +22,12 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn new(engine: &PlayGround, snake_view: bool) -> Self {
+    pub fn new(engine: &PlayGround, snake_view: bool, size: f64) -> Self {
         let mut start_grid_x = 13.;
         let mut start_grid_y = 10.;
         let max_size = std::cmp::max(engine.width, engine.height);
-        let border_size = 72. / (max_size + 2) as f64;
-        let rect_size = 720. / (max_size + 2) as f64;
+        let border_size = size / (10. * (max_size + 2) as f64);
+        let rect_size = size / (max_size + 2) as f64;
         match engine.width > engine.height {
             true => start_grid_y += (engine.width - engine.height) as f64 * rect_size / 2.,
             false => start_grid_x += (engine.height - engine.width) as f64 * rect_size / 2.,

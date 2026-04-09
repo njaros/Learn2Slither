@@ -386,6 +386,7 @@ fn testing_board(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
         let board = Board::new(
             &app.playground.as_ref().unwrap(),
             app.testing_params.snake_view,
+            675.,
         );
 
         board.draw(&c, g);

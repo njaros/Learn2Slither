@@ -584,6 +584,7 @@ fn training_board(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
         let board = Board::new(
             &app.playground.as_ref().unwrap(),
             app.training_params.snake_view,
+            675.,
         );
         let bests_scores = &app.agent.as_ref().unwrap().get_best_score();
         board.draw(&c, g);
