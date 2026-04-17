@@ -584,6 +584,7 @@ fn training_board(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
         let board = Board::new(
             &app.playground.as_ref().unwrap(),
             app.training_params.snake_view,
+            685.
         );
         let bests_scores = &app.agent.as_ref().unwrap().get_best_score();
         board.draw(&c, g);
@@ -756,21 +757,8 @@ fn training_board(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
                     }
                 }
                 app.training_params.previous_state = Some(current_state);
-                app.training_params.last_dir = agent.play(current_state, true);
+                app.training_params.last_dir = agent.play(current_state, false);
                 playground.next(app.training_params.last_dir);
-                match playground.is_alive() {
-                    true => playground.print_snake_view(),
-                    false => {
-                        println!(
-                            "try: {}: score: {:03} | current explo_rate: {}, current discount_factor: {}\n",
-                            app.training_params.current_round + 1,
-                            playground.get_score(),
-                            agent.exploration_rate,
-                            agent.discount_factor
-                        );
-                        println!("{playground}")
-                    }
-                }
             } else {
                 agent.bellman(
                     app.training_params.previous_state.unwrap(),
@@ -788,7 +776,6 @@ fn training_board(window: &mut PistonWindow, e: &Event, app: &mut AppParams) {
                     agent.reduce_exploration_by(5. / (8. * app.training_params.rounds as f64));
                     agent.increase_discount_factor_by(1. / app.training_params.rounds as f64);
                     app.playground = Some(PlayGround::new(10, 10, make_rng()));
-                    app.playground.as_ref().unwrap().print_snake_view();
                     app.training_params
                         .rewarder
                         .init(&app.playground.as_ref().unwrap().snake_view());
@@ -918,7 +905,6 @@ pub fn training_route(window: &mut PistonWindow, e: &Event, app: &mut AppParams)
             match &mut app.playground {
                 None => {
                     app.playground = Some(PlayGround::new(10, 10, make_rng()));
-                    app.playground.as_ref().unwrap().print_snake_view();
                     app.training_params
                         .rewarder
                         .init(&app.playground.as_ref().unwrap().snake_view());
